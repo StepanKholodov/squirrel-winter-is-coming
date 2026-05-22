@@ -15,6 +15,7 @@ public class GameWindow extends JFrame {
         InputHandler input = new InputHandler();
         GamePanel panel    = new GamePanel();
 
+        GameManager.getInstance().setInput(input);
         GameManager.getInstance().setCurrentState(new MenuState(input));
 
         setTitle("Squirrel: Winter Is Coming");

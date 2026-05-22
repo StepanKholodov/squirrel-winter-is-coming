@@ -15,8 +15,8 @@ public class GameOverState implements GameState {
 
     public GameOverState(InputHandler input) {
         this.input = input;
-        // Привязки регистрируем не сразу — через 40 тиков (защита от случайных нажатий)
-        input.clearBindings();
+        // Привязки регистрируем не сразу — через 40 тиков (защита от случайных нажатий).
+        // Поэтому onEnter() здесь пуст — биндинги ставит update() по таймеру.
     }
 
     @Override

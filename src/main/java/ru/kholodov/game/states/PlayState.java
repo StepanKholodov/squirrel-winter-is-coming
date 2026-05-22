@@ -31,9 +31,9 @@ public class PlayState implements GameState {
 
     private Level       level;
     private Player      player;
-    private List<Enemy> enemies = new ArrayList<>();
-    private List<Nut>   nuts    = new ArrayList<>();
-    private List<Trap>  traps   = new ArrayList<>();
+    private final List<Enemy> enemies = new ArrayList<>();
+    private final List<Nut>   nuts    = new ArrayList<>();
+    private final List<Trap>  traps   = new ArrayList<>();
     private Door        door;
     private HUD         hud;
 
@@ -95,19 +95,16 @@ public class PlayState implements GameState {
         hud = new HUD(totalNuts, levelNumber);
         player.addObserver(hud);
 
-        // Привязываем клавиши
-        bindKeys();
+        // Биндинги клавиш ставит onEnter() — его вызовет GameManager после конструктора.
     }
 
     // ── Привязка клавиш (Command) ─────────────────────────────────────────────
 
     /**
      * Регистрирует команды движения в InputHandler.
-     * Вызывается при загрузке и при возврате из паузы (через onEnter).
+     * Вызывается через onEnter() — clearBindings() при этом уже сделал GameManager.
      */
     private void bindKeys() {
-        input.clearBindings();
-
         // Движение — MoveCommand управляет флагами внутри Player
         input.bindOnPress  (KeyEvent.VK_A,     new MoveCommand(player, MoveCommand.Direction.LEFT,  true));
         input.bindOnRelease(KeyEvent.VK_A,     new MoveCommand(player, MoveCommand.Direction.LEFT,  false));

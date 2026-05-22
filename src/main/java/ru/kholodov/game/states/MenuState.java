@@ -8,15 +8,20 @@ import ru.kholodov.game.input.commands.ChangeStateCommand;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
-public class MenuState implements GameState {
+public class
+MenuState implements GameState {
 
     private final InputHandler input;
     private int timer = 0;
 
     public MenuState(InputHandler input) {
         this.input = input;
-        // Регистрируем команды этого экрана (паттерн Command)
-        input.clearBindings();
+    }
+
+    @Override
+    public void onEnter() {
+        // Биндинги регистрируем при входе в состояние (паттерн Command).
+        // clearBindings вызывает GameManager — состояние об этом не заботится.
         input.bindOnPress(KeyEvent.VK_ENTER,
                 new ChangeStateCommand(() -> new PlayState(input, 1)));
     }
