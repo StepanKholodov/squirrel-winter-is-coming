@@ -17,5 +17,8 @@ public class GameManager {
     }
 
     public GameState getCurrentState()            { return currentState; }
-    public void setCurrentState(GameState state)  { this.currentState = state; }
+    public void setCurrentState(GameState state) {
+        this.currentState = state;
+        state.onEnter(); // уведомляем новое состояние о том, что оно стало активным
+    }
 }
