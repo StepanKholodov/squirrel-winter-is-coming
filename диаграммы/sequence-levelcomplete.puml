@@ -1,0 +1,89 @@
+@startuml SequenceLevelComplete
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 8
+skinparam backgroundColor #FEFEFE
+skinparam sequence {
+    LifeLineBorderColor #4A6FA5
+    LifeLineBackgroundColor #E8F0FF
+    ParticipantBackgroundColor #F5F8FF
+    ParticipantBorderColor #4A6FA5
+    ParticipantFontSize 12
+    ArrowColor #2C4A7C
+    NoteBackgroundColor #FFFBE6
+    NoteBorderColor #D4A017
+}
+
+title Сбор орехов → открытие сундука → завершение уровня
+
+participant "PlayState" as PS
+participant "Iterator<Nut>" as NIT
+participant "Player\n<<Subject>>" as P
+participant "HUD\n<<Observer>>" as H
+participant "Door" as D
+participant "GameManager\n<<Singleton>>" as GM
+participant "LevelCompleteState" as LC
+
+== Сбор орехов (каждый тик) ==
+
+loop для каждого Nut в списке
+    PS -> NIT : hasNext()
+    PS -> NIT : next() → nut
+    PS -> PS : player.getBounds()\n.intersects(nut.getBounds())
+
+    alt Игрок касается ореха
+        PS -> P : collectNut()
+        activate P
+            P -> P : nutsCollected++
+            P -> H : notifyObservers()
+            activate H
+                H -> H : nutsCollected = N → обновить счётчик
+            deactivate H
+        deactivate P
+        PS -> NIT : remove()
+        note over NIT : Орех удаляется из списка,\nбольше не проверяется
+    end
+end
+
+== Обновление состояния сундука ==
+
+PS -> D : setOpen(nuts.isEmpty())
+activate D
+    alt nuts пуст
+        D -> D : open = true
+        note right of D : Спрайт: CHEST_OPEN\nGlow усиливается\n6 sparkles вместо 3
+    else орехи ещё есть
+        D -> D : open = false
+    end
+deactivate D
+
+== Проверка входа в сундук ==
+
+PS -> PS : nuts.isEmpty()\n&& player.getBounds()\n  .intersects(door.getBounds())
+
+alt Все орехи собраны && игрок у сундука
+    PS -> GM : setCurrentState(\n  new LevelCompleteState(\n    input, levelNumber))
+    activate GM
+        GM -> LC : ** создаётся **
+        GM -> GM : currentState = LevelCompleteState
+        GM -> LC : onEnter()
+    deactivate GM
+
+    LC -> LC : render() →\n"LEVEL COMPLETE!"\nили "YOU WIN!"
+
+    note over LC : Игрок нажимает ENTER\n→ переход к следующему уровню\nили MenuState
+end
+
+== Fallback: выпал за экран ==
+
+PS -> PS : player.getY() > GameWindow.HEIGHT + 64
+
+alt Игрок упал за нижний край
+    PS -> P : loseLife()
+    alt lives == 0
+        PS -> GM : setCurrentState(new GameOverState(input))
+    else
+        PS -> P : respawn(spawnX, spawnY)
+    end
+end
+
+@enduml

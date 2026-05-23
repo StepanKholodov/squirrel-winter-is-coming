@@ -1,0 +1,374 @@
+@startuml ClassDiagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rect
+skinparam linetype ortho
+skinparam backgroundColor #FEFEFE
+skinparam class {
+    BackgroundColor #F5F8FF
+    BorderColor #4A6FA5
+    HeaderBackgroundColor #4A6FA5
+    HeaderFontColor White
+    FontSize 12
+}
+skinparam package {
+    BackgroundColor #F0F4FF
+    BorderColor #4A6FA5
+    FontColor #4A6FA5
+    FontStyle bold
+}
+
+' ══════════════════════════════
+' MANAGERS — Singleton
+' ══════════════════════════════
+package managers {
+    class GameManager <<Singleton>> {
+        -{static} instance : GameManager
+        -currentState : GameState
+        --
+        +{static} getInstance() : GameManager
+        +setCurrentState(s : GameState)
+        +update()
+        +render(g : Graphics2D)
+    }
+}
+
+' ══════════════════════════════
+' STATES — State pattern
+' ══════════════════════════════
+package states {
+    interface GameState <<State>> {
+        +update()
+        +render(g : Graphics2D)
+        +onEnter()
+    }
+    class PlayState {
+        -level : Level
+        -player : Player
+        -enemies : List<Enemy>
+        -nuts : List<Nut>
+        -traps : List<Trap>
+        -door : Door
+        -hud : HUD
+        -input : InputHandler
+        -levelNumber : int
+        --
+        -load()
+        -bindKeys()
+        +update()
+        +render(g : Graphics2D)
+        +onEnter()
+    }
+    class PauseState {
+        -previous : PlayState
+        -input : InputHandler
+    }
+    class GameOverState {
+        -input : InputHandler
+    }
+    class LevelCompleteState {
+        -levelNumber : int
+        -input : InputHandler
+    }
+    class MenuState {
+        -input : InputHandler
+    }
+}
+
+' ══════════════════════════════
+' INPUT — Command pattern
+' ══════════════════════════════
+package input {
+    interface Command <<Command>> {
+        +execute()
+    }
+    class InputHandler <<Invoker>> {
+        -pressBindings : Map<Integer, Command>
+        -releaseBindings : Map<Integer, Command>
+        -queue : Queue<Command>
+        --
+        +bindOnPress(key : int, cmd : Command)
+        +bindOnRelease(key : int, cmd : Command)
+        +processCommands()
+        +clearBindings()
+    }
+    interface PlayerActions <<Receiver>> {
+        +startMovingLeft()
+        +stopMovingLeft()
+        +startMovingRight()
+        +stopMovingRight()
+        +jump()
+    }
+    class MoveCommand <<ConcreteCommand>> {
+        -target : PlayerActions
+        -direction : Direction
+        -pressed : boolean
+        --
+        +execute()
+    }
+    class JumpCommand <<ConcreteCommand>> {
+        -target : PlayerActions
+        --
+        +execute()
+    }
+    class ChangeStateCommand <<ConcreteCommand>> {
+        -stateFactory : Supplier<GameState>
+        --
+        +execute()
+    }
+}
+
+' ══════════════════════════════
+' ENTITIES
+' ══════════════════════════════
+package entities {
+    abstract class GameObject {
+        #x : float
+        #y : float
+        #width : int
+        #height : int
+        --
+        +getBounds() : Rectangle
+        +{abstract} update()
+        +{abstract} render(g : Graphics2D)
+    }
+    class Player <<Subject>> {
+        -velocityY : float
+        -onGround : boolean
+        -movingLeft : boolean
+        -movingRight : boolean
+        -lives : int = 3
+        -nutsCollected : int
+        -invTimer : int
+        -animFrame : int
+        -observers : List<PlayerObserver>
+        --
+        +addObserver(o : PlayerObserver)
+        -notifyObservers()
+        +loseLife()
+        +collectNut()
+        +respawn(x : float, y : float)
+        +getVelocityY() : float
+        +isAlive() : boolean
+        +isInvincible() : boolean
+        +update()
+        +render(g : Graphics2D)
+    }
+    interface EnemyFactory <<FactoryMethod>> {
+        +create(x : float, y : float) : Enemy
+    }
+    class PatrolEnemyFactory <<ConcreteCreator>> {
+        -leftBound : float
+        -rightBound : float
+        --
+        +create(x, y) : Enemy
+    }
+    class ChaseEnemyFactory <<ConcreteCreator>> {
+        -player : Player
+        --
+        +create(x, y) : Enemy
+    }
+}
+
+' ══════════════════════════════
+' ENEMIES
+' ══════════════════════════════
+package enemies {
+    class Enemy {
+        -strategy : EnemyStrategy
+        -frames : BufferedImage[]
+        -drawSize : int
+        -animFrame : int
+        -animTimer : int
+        -facingRight : boolean
+        --
+        +update()
+        +render(g : Graphics2D)
+        +setStrategy(s : EnemyStrategy)
+        +setX(x : float)
+        +setY(y : float)
+        +getX() : float
+        +getY() : float
+    }
+}
+
+' ══════════════════════════════
+' STRATEGIES — Strategy pattern
+' ══════════════════════════════
+package strategies {
+    interface EnemyStrategy <<Strategy>> {
+        +execute(enemy : Enemy)
+    }
+    class PatrolStrategy <<ConcreteStrategy>> {
+        -leftBound : float
+        -rightBound : float
+        -direction : float
+        --
+        +execute(enemy : Enemy)
+    }
+    class ChaseStrategy <<ConcreteStrategy>> {
+        -player : Player
+        -speed : float
+        --
+        +execute(enemy : Enemy)
+    }
+}
+
+' ══════════════════════════════
+' ITEMS
+' ══════════════════════════════
+package items {
+    class Nut {
+        +update()
+        +render(g : Graphics2D)
+    }
+    class Trap {
+        +update()
+        +render(g : Graphics2D)
+    }
+    class Door {
+        -open : boolean
+        --
+        +setOpen(open : boolean)
+        +update()
+        +render(g : Graphics2D)
+    }
+}
+
+' ══════════════════════════════
+' UI — Observer pattern
+' ══════════════════════════════
+package ui {
+    interface PlayerObserver <<Observer>> {
+        +onPlayerChanged(lives : int, nutsCollected : int)
+    }
+    class HUD <<ConcreteObserver>> {
+        -lives : int
+        -nutsCollected : int
+        -totalNuts : int
+        -levelNum : int
+        --
+        +onPlayerChanged(lives : int, nutsCollected : int)
+        +render(g : Graphics2D)
+    }
+}
+
+' ══════════════════════════════
+' LEVELS
+' ══════════════════════════════
+package levels {
+    class Level {
+        +{static} TILE_SIZE : int = 32
+        -{static} PLATFORM_H : int = 56
+        -{static} GROUND_H : int = 80
+        -tiles : char[][]
+        --
+        +getTile(row : int, col : int) : char
+        +getRows() : int
+        +getCols() : int
+        +findSpawn() : int[]
+        +countNuts() : int
+        +render(g : Graphics2D)
+    }
+    class LevelLoader {
+        +{static} load(path : String) : Level
+    }
+}
+
+' ══════════════════════════════
+' ENGINE
+' ══════════════════════════════
+package engine {
+    class GameWindow {
+        +{static} WIDTH : int = 800
+        +{static} HEIGHT : int = 480
+        --
+        +start()
+    }
+    class Sprites <<utility>> {
+        +{static} SQUIRREL_IDLE : BufferedImage[]
+        +{static} SQUIRREL_RUN : BufferedImage[]
+        +{static} SQUIRREL_JUMP : BufferedImage[]
+        +{static} ENEMY_PATROL_RUN : BufferedImage[]
+        +{static} ENEMY_CHASE : BufferedImage[]
+        +{static} ACORN : BufferedImage[]
+        +{static} TILE_TOP : BufferedImage
+        +{static} GROUND : BufferedImage
+        +{static} BG_AUTUMN : BufferedImage
+        --
+        +{static} strip(sheet, count, size) : BufferedImage[]
+        +{static} load(path : String) : BufferedImage
+        +{static} blur(src, radius) : BufferedImage
+    }
+    class Fonts <<utility>> {
+        +{static} TITLE : Font
+        +{static} BUTTON : Font
+        +{static} HUD : Font
+        --
+        +{static} drawShadow(g, text, x, y, shadow, main)
+        +{static} drawCentered(g, text, y, shadow, main, w)
+    }
+}
+
+' ══════════════════════════════════════
+' СВЯЗИ
+' ══════════════════════════════════════
+
+' Singleton — управление состояниями
+GameManager -right-> GameState : "currentState"
+
+' State — реализации состояний
+GameState <|.. PlayState
+GameState <|.. PauseState
+GameState <|.. GameOverState
+GameState <|.. LevelCompleteState
+GameState <|.. MenuState
+
+' Command — привязка клавиш
+Command <|.. MoveCommand
+Command <|.. JumpCommand
+Command <|.. ChangeStateCommand
+InputHandler "1" o--> "0..*" Command : "хранит"
+MoveCommand --> PlayerActions : "вызывает"
+JumpCommand --> PlayerActions : "вызывает"
+Player ..|> PlayerActions
+
+' Factory Method — создание врагов
+EnemyFactory <|.. PatrolEnemyFactory
+EnemyFactory <|.. ChaseEnemyFactory
+PatrolEnemyFactory ..> Enemy : <<creates>>
+ChaseEnemyFactory ..> Enemy : <<creates>>
+
+' Strategy — поведение врагов
+EnemyStrategy <|.. PatrolStrategy
+EnemyStrategy <|.. ChaseStrategy
+Enemy -right-> EnemyStrategy : "strategy"
+
+' Observer — уведомление HUD
+PlayerObserver <|.. HUD
+Player "1" o--> "0..*" PlayerObserver : "observers"
+
+' Наследование от GameObject
+GameObject <|-- Player
+GameObject <|-- Enemy
+GameObject <|-- Nut
+GameObject <|-- Trap
+GameObject <|-- Door
+
+' Композиция PlayState
+PlayState *--> "1" Player
+PlayState *--> "1" Level
+PlayState *--> "0..*" Enemy
+PlayState *--> "0..*" Nut
+PlayState *--> "0..*" Trap
+PlayState o--> "0..1" Door
+PlayState *--> "1" HUD
+PlayState --> "1" InputHandler
+
+' Level
+LevelLoader ..> Level : <<creates>>
+
+' Chase зависит от Player
+ChaseStrategy --> Player : "отслеживает позицию"
+ChaseEnemyFactory --> Player : "передаёт ссылку"
+
+@enduml
