@@ -1,5 +1,6 @@
 package ru.kholodov.game.states;
 
+import ru.kholodov.game.engine.Fonts;
 import ru.kholodov.game.engine.GameWindow;
 import ru.kholodov.game.input.InputHandler;
 import ru.kholodov.game.input.commands.ChangeStateCommand;
@@ -35,22 +36,37 @@ public class PauseState implements GameState {
     public void render(Graphics2D g) {
         resumeState.render(g); // рисуем игру под паузой
 
-        g.setColor(new Color(0, 0, 0, 150));
-        g.fillRect(0, 0, GameWindow.WIDTH, GameWindow.HEIGHT);
+        int W = GameWindow.WIDTH, H = GameWindow.HEIGHT;
 
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // Тёмный полупрозрачный оверлей
+        g.setColor(new Color(0, 0, 0, 160));
+        g.fillRect(0, 0, W, H);
 
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 48));
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // Заголовок «PAUSED»
+        g.setFont(Fonts.TITLE);
         FontMetrics fm = g.getFontMetrics();
         String title = "PAUSED";
-        g.drawString(title, (GameWindow.WIDTH - fm.stringWidth(title)) / 2, 190);
+        int tx = (W - fm.stringWidth(title)) / 2;
+        int ty = 200;
+        Fonts.drawShadow(g, title, tx, ty, new Color(0, 0, 0, 200), new Color(255, 230, 100));
 
-        g.setFont(new Font("Arial", Font.PLAIN, 20));
+        // Декоративная линия
+        g.setColor(new Color(210, 160, 40, 180));
+        g.setStroke(new BasicStroke(2f));
+        g.drawLine(tx + 10, ty + 14, tx + fm.stringWidth(title) - 10, ty + 14);
+        g.setStroke(new BasicStroke(1f));
+
+        // Подсказки
+        g.setFont(Fonts.BODY);
         fm = g.getFontMetrics();
         String[] lines = { "ESC — Continue", "R — Restart", "ENTER — Main Menu" };
+        int startY = 290;
         for (int i = 0; i < lines.length; i++) {
-            g.drawString(lines[i], (GameWindow.WIDTH - fm.stringWidth(lines[i])) / 2, 280 + i * 34);
+            Fonts.drawCentered(g, lines[i], startY + i * (fm.getHeight() + 8),
+                    new Color(0, 0, 0, 180), new Color(220, 210, 180), W);
         }
     }
 }

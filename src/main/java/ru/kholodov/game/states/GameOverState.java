@@ -1,5 +1,6 @@
 package ru.kholodov.game.states;
 
+import ru.kholodov.game.engine.Fonts;
 import ru.kholodov.game.engine.GameWindow;
 import ru.kholodov.game.input.InputHandler;
 import ru.kholodov.game.input.commands.ChangeStateCommand;
@@ -34,29 +35,46 @@ public class GameOverState implements GameState {
 
     @Override
     public void render(Graphics2D g) {
-        g.setColor(new Color(15, 15, 15));
-        g.fillRect(0, 0, GameWindow.WIDTH, GameWindow.HEIGHT);
+        int W = GameWindow.WIDTH, H = GameWindow.HEIGHT;
 
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // Тёмный фон с лёгким красноватым оттенком
+        g.setColor(new Color(20, 8, 8));
+        g.fillRect(0, 0, W, H);
 
-        g.setColor(new Color(200, 50, 50));
-        g.setFont(new Font("Arial", Font.BOLD, 54));
+        // Градиент снизу — ощущение холода/тьмы
+        GradientPaint fade = new GradientPaint(0, H / 2, new Color(0,0,0,0), 0, H, new Color(60, 0, 0, 180));
+        g.setPaint(fade);
+        g.fillRect(0, H / 2, W, H / 2);
+
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // Заголовок «GAME OVER»
+        g.setFont(Fonts.TITLE);
         FontMetrics fm = g.getFontMetrics();
         String title = "GAME OVER";
-        g.drawString(title, (GameWindow.WIDTH - fm.stringWidth(title)) / 2, 200);
+        int tx = (W - fm.stringWidth(title)) / 2;
+        int ty = 200;
+        Fonts.drawShadow(g, title, tx, ty, new Color(0, 0, 0, 220), new Color(210, 50, 50));
 
-        g.setColor(new Color(180, 150, 100));
-        g.setFont(new Font("Arial", Font.ITALIC, 20));
+        // Декоративная линия
+        g.setColor(new Color(180, 40, 40, 160));
+        g.setStroke(new BasicStroke(2f));
+        g.drawLine(tx + 10, ty + 14, tx + fm.stringWidth(title) - 10, ty + 14);
+        g.setStroke(new BasicStroke(1f));
+
+        // Подзаголовок
+        g.setFont(Fonts.BODY);
         fm = g.getFontMetrics();
         String sub = "Winter came too early...";
-        g.drawString(sub, (GameWindow.WIDTH - fm.stringWidth(sub)) / 2, 248);
+        Fonts.drawCentered(g, sub, ty + 50, new Color(0,0,0,180), new Color(180, 150, 100), W);
 
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.PLAIN, 18));
-        fm = g.getFontMetrics();
+        // Кнопки
         String[] lines = { "R — Retry", "ENTER — Main Menu" };
+        int startY = 330;
         for (int i = 0; i < lines.length; i++) {
-            g.drawString(lines[i], (GameWindow.WIDTH - fm.stringWidth(lines[i])) / 2, 320 + i * 32);
+            Fonts.drawCentered(g, lines[i], startY + i * (fm.getHeight() + 10),
+                    new Color(0,0,0,180), new Color(220, 210, 180), W);
         }
     }
 }

@@ -20,6 +20,12 @@ public class GamePanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        GameManager.getInstance().getCurrentState().render((Graphics2D) g);
+        Graphics2D g2 = (Graphics2D) g;
+        // Pixel art — не сглаживать при масштабировании
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_SPEED);
+        GameManager.getInstance().getCurrentState().render(g2);
     }
 }
