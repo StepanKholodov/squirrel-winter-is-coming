@@ -3,16 +3,33 @@ package ru.kholodov.game.strategies;
 import ru.kholodov.game.enemies.Enemy;
 import ru.kholodov.game.entities.Player;
 
+/**
+ * Стратегия преследования (для летающего ворона). Каждый тик пытается
+ * подойти к игроку по X; если на горизонтальном пути препятствие —
+ * сначала пробует облететь его сверху, иначе снизу. По Y подтягивается
+ * к игроку с половинной скоростью, чтобы движение выглядело плавно.
+ * <p>
+ * Если игрок дальше 300px по горизонтали — стратегия не двигает врага
+ * (вне зоны видимости).
+ */
 public class ChaseStrategy implements EnemyStrategy {
 
     private final Player player;
     private final float speed;
 
+    /**
+     * @param player цель преследования
+     * @param speed  базовая скорость в пикс/тик
+     */
     public ChaseStrategy(Player player, float speed) {
         this.player = player;
         this.speed = speed;
     }
 
+    /**
+     * Тик стратегии: шаг к игроку, при стенке — облёт, затем подгонка высоты.
+     * Подробности см. в Javadoc класса.
+     */
     @Override
     public void execute(Enemy enemy) {
         float dx = player.getX() - enemy.getX();

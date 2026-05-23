@@ -54,12 +54,21 @@ public class Player extends GameObject implements PlayerActions {
         observers.add(o);
     }
 
+    /**
+     * Шлёт всем подписчикам актуальные значения жизней и собранных орехов.
+     * Вызывается при любом изменении состояния (Observer push-модель).
+     */
     private void notifyObservers() {
         for (PlayerObserver o : observers) o.onPlayerChanged(lives, nutsCollected);
     }
 
     // ── Конструктор ──────────────────────────────────────────────────────────
 
+    /**
+     * @param x     стартовая X-координата (левый край хитбокса 28×28)
+     * @param y     стартовая Y-координата (верх хитбокса)
+     * @param level уровень для проверки коллизий с тайлами {@code '#'}
+     */
     public Player(float x, float y, Level level) {
         super(x, y, 28, 28);
         this.level = level;
@@ -99,6 +108,11 @@ public class Player extends GameObject implements PlayerActions {
 
     // ── Обновление ───────────────────────────────────────────────────────────
 
+    /**
+     * Тик игровой логики: обновляет таймеры неуязвимости/анимации, применяет
+     * горизонтальное движение по флагам, гравитацию и разрешает коллизии с
+     * тайлами уровня.
+     */
     @Override
     public void update() {
         if (invTimer > 0) invTimer--;
@@ -120,6 +134,10 @@ public class Player extends GameObject implements PlayerActions {
 
     // ── Коллизии с тайлами ────────────────────────────────────────────────────
 
+    /**
+     * Разрешает горизонтальные коллизии: если по направлению движения встретился
+     * сплошной тайл — прижимает игрока к его краю.
+     */
     private void resolveHorizontalCollision() {
         int ts = Level.TILE_SIZE;
         int topRow = (int) (y / ts);
@@ -137,6 +155,11 @@ public class Player extends GameObject implements PlayerActions {
         }
     }
 
+    /**
+     * Разрешает вертикальные коллизии и обновляет флаг {@code onGround}.
+     * При приземлении выставляет {@code velocityY = 0}; если под ногами пусто —
+     * сбрасывает {@code onGround} (актуально для срыва с края платформы).
+     */
     private void resolveVerticalCollision() {
         int ts = Level.TILE_SIZE;
         int leftCol = (int) (x / ts);
@@ -163,12 +186,18 @@ public class Player extends GameObject implements PlayerActions {
             onGround = false;
     }
 
+    /** Проверка тайла {@code '#'} в позиции {@code (row, col)} карты уровня. */
     private boolean isSolid(int row, int col) {
         return level.getTile(row, col) == '#';
     }
 
     // ── Жизни и орехи ────────────────────────────────────────────────────────
 
+    /**
+     * Снимает одну жизнь. Игнорируется во время неуязвимости (мигание после
+     * предыдущего удара). После урона выдаёт ~2 секунды неуязвимости и
+     * нотифицирует наблюдателей.
+     */
     public void loseLife() {
         if (invTimer > 0) return;
         lives--;
@@ -176,11 +205,16 @@ public class Player extends GameObject implements PlayerActions {
         notifyObservers();
     }
 
+    /** Увеличивает счётчик собранных орехов и уведомляет наблюдателей. */
     public void collectNut() {
         nutsCollected++;
         notifyObservers();
     }
 
+    /**
+     * Возвращает игрока в спавн-точку после смерти на ловушке/враге.
+     * Сбрасывает скорость, флаги движения и состояние «на земле».
+     */
     public void respawn(float spawnX, float spawnY) {
         x = spawnX;
         y = spawnY;
@@ -192,6 +226,11 @@ public class Player extends GameObject implements PlayerActions {
 
     // ── Рендер ───────────────────────────────────────────────────────────────
 
+    /**
+     * Рисует белку: выбирает стрип по состоянию (idle/run/jump), нужный кадр
+     * по таймеру анимации, отзеркаливает по {@code facingRight}. Во время
+     * неуязвимости спрайт мигает (часть кадров пропускается).
+     */
     @Override
     public void render(Graphics2D g) {
         // Мигание при неуязвимости
@@ -225,18 +264,22 @@ public class Player extends GameObject implements PlayerActions {
 
     // ── Геттеры ──────────────────────────────────────────────────────────────
 
+    /** Текущее количество жизней. */
     public int getLives() {
         return lives;
     }
 
+    /** Количество собранных орехов на этом уровне. */
     public int getNutsCollected() {
         return nutsCollected;
     }
 
+    /** {@code true}, пока остался хотя бы один заряд жизни. */
     public boolean isAlive() {
         return lives > 0;
     }
 
+    /** {@code true} в окно неуязвимости после удара. */
     public boolean isInvincible() {
         return invTimer > 0;
     }

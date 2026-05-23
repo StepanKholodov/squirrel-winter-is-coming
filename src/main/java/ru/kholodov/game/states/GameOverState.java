@@ -8,18 +8,32 @@ import ru.kholodov.game.input.commands.ChangeStateCommand;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
+/**
+ * Экран «Game Over». Показывает заголовок и предлагает рестарт (R) или выход
+ * в меню (ENTER).
+ * <p>
+ * Клавиши регистрируются не сразу, а через 40 тиков (≈0.7 с) — защита от
+ * случайного нажатия, которое произошло в момент смерти и попало бы в новый
+ * экран.
+ */
 public class GameOverState implements GameState {
 
     private final InputHandler input;
     private int timer = 0;
     private boolean bindingsRegistered = false;
 
+    /**
+     * @param input общий обработчик ввода
+     */
     public GameOverState(InputHandler input) {
         this.input = input;
         // Привязки регистрируем не сразу — через 40 тиков (защита от случайных нажатий).
         // Поэтому onEnter() здесь пуст — биндинги ставит update() по таймеру.
     }
 
+    /**
+     * Тикает таймер; на 40-м тике вешает R/ENTER, если ещё не повешены.
+     */
     @Override
     public void update() {
         input.processCommands();
@@ -33,6 +47,10 @@ public class GameOverState implements GameState {
         }
     }
 
+    /**
+     * Рисует тёмный фон с красноватым градиентом снизу, заголовок «GAME OVER»
+     * и подсказки по клавишам.
+     */
     @Override
     public void render(Graphics2D g) {
         int W = GameWindow.WIDTH, H = GameWindow.HEIGHT;

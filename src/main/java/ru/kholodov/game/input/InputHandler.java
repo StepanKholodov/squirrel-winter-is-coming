@@ -31,7 +31,8 @@ public class InputHandler implements KeyListener {
     private final Queue<Command> queue = new ConcurrentLinkedQueue<>();
 
     /**
-     * Привязать команду к нажатию клавиши.
+     * Привязать команду к нажатию клавиши. Повторный вызов с тем же {@code keyCode}
+     * заменяет предыдущую команду.
      */
     public void bindOnPress(int keyCode, Command cmd) {
         onPress.put(keyCode, cmd);
@@ -39,14 +40,16 @@ public class InputHandler implements KeyListener {
     }
 
     /**
-     * Привязать команду к отпусканию клавиши.
+     * Привязать команду к отпусканию клавиши. Семантика идентична {@link #bindOnPress}.
      */
     public void bindOnRelease(int keyCode, Command cmd) {
         onRelease.put(keyCode, cmd);
     }
 
     /**
-     * Сбросить все привязки. Вызывается при смене состояния.
+     * Сбросить все привязки и очистить очередь. Вызывается из
+     * {@link GameManager#setCurrentState(ru.kholodov.game.states.GameState)}
+     * при каждой смене состояния.
      */
     public void clearBindings() {
         onPress.clear();
@@ -55,7 +58,8 @@ public class InputHandler implements KeyListener {
     }
 
     /**
-     * Выполнить все накопленные команды. Вызывается из update() в потоке игры.
+     * Выполнить все накопленные команды. Вызывается из {@code update()}
+     * в потоке игры — так EDT и игровая логика не дёргают друг друга.
      */
     public void processCommands() {
         Command c;
@@ -64,6 +68,10 @@ public class InputHandler implements KeyListener {
         }
     }
 
+    /**
+     * KeyListener: при первом нажатии (без учёта автоповтора) кладёт
+     * onPress-команду в очередь.
+     */
     @Override
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
@@ -74,6 +82,9 @@ public class InputHandler implements KeyListener {
         }
     }
 
+    /**
+     * KeyListener: при отпускании сбрасывает «зажато» и кладёт onRelease-команду.
+     */
     @Override
     public void keyReleased(KeyEvent e) {
         int key = e.getKeyCode();
@@ -82,6 +93,7 @@ public class InputHandler implements KeyListener {
         if (cmd != null) queue.offer(cmd);
     }
 
+    /** Не используется — KeyTyped не годится для игровых клавиш-модификаторов. */
     @Override
     public void keyTyped(KeyEvent e) {
     }

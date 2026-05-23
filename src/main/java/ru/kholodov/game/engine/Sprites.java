@@ -8,34 +8,58 @@ import java.awt.image.Kernel;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Кэш всех графических ассетов игры. Загружает PNG из {@code /sprites},
+ * {@code /backgrounds} один раз при первой ссылке на класс и хранит как
+ * {@link BufferedImage}. Анимационные стрипы заранее нарезаются на массивы
+ * кадров — рендеру остаётся только выбрать индекс.
+ * <p>
+ * Если файл не найден, поле остаётся {@code null} (для одиночных спрайтов)
+ * либо пустым массивом — рисующая сторона проверяет это и не падает.
+ */
 public class Sprites {
 
     // ── Белка: горизонтальные стрипы, фреймы 220×220 ─────────────────────────
-    public static final BufferedImage[] SQUIRREL_IDLE; // 3 кадра
-    public static final BufferedImage[] SQUIRREL_RUN;  // 6 кадров
-    public static final BufferedImage[] SQUIRREL_JUMP; // 3 кадра
+    /** 3 кадра анимации покоя. */
+    public static final BufferedImage[] SQUIRREL_IDLE;
+    /** 6 кадров анимации бега. */
+    public static final BufferedImage[] SQUIRREL_RUN;
+    /** 3 кадра анимации прыжка. */
+    public static final BufferedImage[] SQUIRREL_JUMP;
 
     // ── Предметы ──────────────────────────────────────────────────────────────
-    public static final BufferedImage[] ACORN;         // 1 кадр, 261×261
-    public static final BufferedImage TRAP_SPIKE;      // шип-ловушка
-    public static final BufferedImage HEART;           // полное сердце
-    public static final BufferedImage HEART_EMPTY;     // пустое сердце
+    /** Один кадр 261×261, обёрнут массивом для единообразия с другими анимациями. */
+    public static final BufferedImage[] ACORN;
+    /** Шипы-ловушка. */
+    public static final BufferedImage TRAP_SPIKE;
+    /** Полное сердце (жизнь). */
+    public static final BufferedImage HEART;
+    /** Пустое сердце (потерянная жизнь). */
+    public static final BufferedImage HEART_EMPTY;
 
     // ── Тайлы земли ───────────────────────────────────────────────────────────
-    public static final BufferedImage TILE_TOP; // трава + камень (верхний открытый тайл)
-    public static final BufferedImage TILE_MID; // только камень (заглублённый тайл)
-    public static final BufferedImage GROUND;   // земля-новая.png — полоса низа экрана
+    /** Верхний открытый тайл — трава + камень. */
+    public static final BufferedImage TILE_TOP;
+    /** Заглублённый тайл — только камень. */
+    public static final BufferedImage TILE_MID;
+    /** Полоса земли по низу экрана. */
+    public static final BufferedImage GROUND;
 
     // ── Сундук (выход) ────────────────────────────────────────────────────────
+    /** Закрытый сундук — пока не собраны все орехи. */
     public static final BufferedImage CHEST_CLOSED;
+    /** Открытый сундук — все орехи собраны, выход активен. */
     public static final BufferedImage CHEST_OPEN;
 
     // ── Враги ────────────────────────────────────────────────────────────────
-    public static final BufferedImage[] ENEMY_PATROL_RUN;  // ёжик, 6 кадров 220×220
-    public static final BufferedImage[] ENEMY_CHASE;       // ворон, 4 кадра 250×250
+    /** Ёжик — 5 кадров 220×220 для PatrolStrategy. */
+    public static final BufferedImage[] ENEMY_PATROL_RUN;
+    /** Ворон — 4 кадра 250×250 для ChaseStrategy. */
+    public static final BufferedImage[] ENEMY_CHASE;
 
     // ── Фон ───────────────────────────────────────────────────────────────────
-    public static final BufferedImage BG_AUTUMN; // осенний фон
+    /** Осенний фон игрового поля (предварительно слегка размыт). */
+    public static final BufferedImage BG_AUTUMN;
 
     static {
         // ── Белка ─────────────────────────────────────────────────────────────
@@ -55,9 +79,9 @@ public class Sprites {
         HEART_EMPTY = load("/sprites/heart_empty.png");
 
         // ── Тайлы ─────────────────────────────────────────────────────────────
-        TILE_TOP = load("/sprites/tile_top.png"); // трава + камень
-        TILE_MID = load("/sprites/tile_mid.png"); // только камень
-        GROUND = load("/sprites/ground.png");   // земля-новая: полоса низа
+        TILE_TOP = load("/sprites/tile_top.png");
+        TILE_MID = load("/sprites/tile_mid.png");
+        GROUND = load("/sprites/ground.png");
 
         // ── Сундук ────────────────────────────────────────────────────────────
         CHEST_CLOSED = load("/sprites/chest_closed.png");
@@ -76,7 +100,9 @@ public class Sprites {
     // ── Вспомогательные методы ────────────────────────────────────────────────
 
     /**
-     * Нарезает горизонтальный стрип: count кадров, каждый frameSize×frameSize
+     * Нарезает горизонтальный спрайт-лист на {@code count} кадров размера
+     * {@code frameSize × frameSize}, лежащих рядом по X. Если {@code sheet} —
+     * {@code null}, возвращается пустой массив (рендер это проверит).
      */
     public static BufferedImage[] strip(BufferedImage sheet, int count, int frameSize) {
         if (sheet == null) return new BufferedImage[0];
@@ -89,7 +115,8 @@ public class Sprites {
     }
 
     /**
-     * Устаревший метод совместимости
+     * Устаревший метод для совместимости — нарезает строку из двухмерной сетки кадров.
+     * Текущие ассеты используют только горизонтальные стрипы, см. {@link #strip}.
      */
     public static BufferedImage[] row(BufferedImage sheet, int rowIndex, int count, int frameSize) {
         BufferedImage[] frames = new BufferedImage[count];
@@ -99,11 +126,19 @@ public class Sprites {
         return frames;
     }
 
+    /**
+     * Вырезает кадр {@code fw × fh} в позиции {@code (col, row)} из спрайт-листа.
+     * Возвращает {@code null}, если лист не загружен.
+     */
     public static BufferedImage cut(BufferedImage sheet, int col, int row, int fw, int fh) {
         if (sheet == null) return null;
         return sheet.getSubimage(col * fw, row * fh, fw, fh);
     }
 
+    /**
+     * Загружает PNG из classpath по {@code path}. При ошибке возвращает
+     * {@code null} и пишет stderr — игра продолжит работу без этого спрайта.
+     */
     public static BufferedImage load(String path) {
         try (InputStream is = Sprites.class.getResourceAsStream(path)) {
             if (is == null) {
@@ -118,8 +153,9 @@ public class Sprites {
     }
 
     /**
-     * Box-blur: применяется один раз при загрузке фона.
-     * radius=2 → ядро 5×5, создаёт лёгкий «depth of field» эффект.
+     * Box-blur через {@link ConvolveOp}, применяется один раз при загрузке фона.
+     * {@code radius=2} → ядро 5×5, создаёт лёгкий «depth of field»-эффект.
+     * Возвращает {@code null}, если на вход подан {@code null}.
      */
     public static BufferedImage blur(BufferedImage src, int radius) {
         if (src == null) return null;

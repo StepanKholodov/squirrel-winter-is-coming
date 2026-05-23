@@ -8,16 +8,29 @@ import ru.kholodov.game.input.commands.ChangeStateCommand;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
+/**
+ * Экран паузы. Рисуется поверх «замороженного» {@link #resumeState}: тот
+ * продолжает рисоваться (но не обновляется), а сверху накладывается тёмный
+ * оверлей и плашка «PAUSED».
+ * <p>
+ * Биндинги: ESC — продолжить ({@code resumeState.onEnter()} восстановит
+ * игровые клавиши), R — рестарт первого уровня, ENTER — в главное меню.
+ */
 public class PauseState implements GameState {
 
     private final InputHandler input;
     private final GameState resumeState;
 
+    /**
+     * @param input       общий обработчик ввода
+     * @param resumeState состояние, на которое нужно вернуться по ESC
+     */
     public PauseState(InputHandler input, GameState resumeState) {
         this.input = input;
         this.resumeState = resumeState;
     }
 
+    /** Регистрирует ESC (продолжить), R (рестарт), ENTER (главное меню). */
     @Override
     public void onEnter() {
         // ESC — вернуться в игру (resumeState.onEnter() восстановит игровые биндинги)
@@ -29,11 +42,16 @@ public class PauseState implements GameState {
                 new ChangeStateCommand(() -> new MenuState(input)));
     }
 
+    /** Только обработка ввода: на паузе мир не двигается. */
     @Override
     public void update() {
         input.processCommands();
     }
 
+    /**
+     * Рисует игру под паузой, затемнённый оверлей и плашку «PAUSED»
+     * со списком клавиш.
+     */
     @Override
     public void render(Graphics2D g) {
         resumeState.render(g); // рисуем игру под паузой

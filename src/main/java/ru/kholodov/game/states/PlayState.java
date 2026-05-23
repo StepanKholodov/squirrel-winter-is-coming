@@ -27,9 +27,22 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Главный игровой экран. Загружает уровень из {@code /levels/levelN.txt},
+ * спавнит игрока, врагов, орехи, шипы и сундук-выход, держит {@link HUD},
+ * прокачивает обновления и отрисовку каждого объекта.
+ * <p>
+ * Связи паттернов:
+ * <ul>
+ *   <li>{@link Player} — Receiver в Command (получает {@link MoveCommand}/{@link JumpCommand}),
+ *       Subject в Observer (нотифицирует {@link HUD});</li>
+ *   <li>{@link EnemyFactory} — Factory Method;</li>
+ *   <li>{@link Enemy} — контекст Strategy;</li>
+ *   <li>{@link HUD} — Observer.</li>
+ * </ul>
+ */
 public class PlayState implements GameState {
 
-    // ── Игровые объекты ──────────────────────────────────────────────────────
 
     private Level level;
     private Player player;
@@ -45,20 +58,24 @@ public class PlayState implements GameState {
     private final InputHandler input;
     private final int levelNumber;
 
-    // ── Конструктор ──────────────────────────────────────────────────────────
 
+    /**
+     * Создаёт игровой экран и сразу загружает указанный уровень.
+     *
+     * @param input       общий обработчик ввода
+     * @param levelNumber номер уровня (1..N)
+     */
     public PlayState(InputHandler input, int levelNumber) {
         this.input = input;
         this.levelNumber = levelNumber;
         load();
     }
 
-    // ── Загрузка уровня ──────────────────────────────────────────────────────
 
     /**
-     * Ищет первую сплошную строку под (row, col) и возвращает Y, при котором
-     * объект высотой entityH стоит верхней гранью своего хитбокса так, чтобы
-     * нижняя грань касалась верха пола. Если пол не найден — возвращает row*ts.
+     * Ищет первую сплошную строку под {@code (row, col)} и возвращает Y,
+     * при котором объект высотой {@code entityH} стоит так, что его нижняя
+     * грань касается верха пола. Если пол не найден — возвращает {@code row*ts}.
      */
     private float snapYToFloor(int row, int col, int ts, int entityH) {
         int floorRow = row + 1;
@@ -69,6 +86,11 @@ public class PlayState implements GameState {
         return floorRow * ts - entityH;
     }
 
+    /**
+     * Парсит карту уровня и создаёт все игровые сущности: игрока, врагов,
+     * жёлуди, шипы и сундук. Сундук и патрульный враг ('D' и 'E') автоматически
+     * сажаются на ближайший пол через {@link #snapYToFloor}.
+     */
     private void load() {
         try {
             level = LevelLoader.load("/levels/level" + levelNumber + ".txt");
@@ -96,18 +118,15 @@ public class PlayState implements GameState {
                     case 'N' -> nuts.add(new Nut(px, py));
                     case 'T' -> traps.add(new Trap(px, py));
                     case 'D' -> {
-                        // Снеп двери на пол, чтобы сундук стоял на поверхности
                         float doorY = snapYToFloor(r, c, ts, ts);
                         door = new Door(px, doorY);
                     }
                     case 'E' -> {
-                        // Factory Method — PatrolEnemyFactory; снеп Y на ближайший пол
                         float enemyY = snapYToFloor(r, c, ts, 28);
                         EnemyFactory f = new PatrolEnemyFactory(px - 96, px + 96, level);
                         enemies.add(f.create(px, enemyY));
                     }
                     case 'C' -> {
-                        // Factory Method — ChaseEnemyFactory (летает, Y оставляем)
                         EnemyFactory f = new ChaseEnemyFactory(player, level);
                         enemies.add(f.create(px, py));
                     }
@@ -122,7 +141,6 @@ public class PlayState implements GameState {
         // Биндинги клавиш ставит onEnter() — его вызовет GameManager после конструктора.
     }
 
-    // ── Привязка клавиш (Command) ─────────────────────────────────────────────
 
     /**
      * Регистрирует команды движения в InputHandler.
@@ -147,16 +165,23 @@ public class PlayState implements GameState {
 
     }
 
-    // ── onEnter: вызывается GameManager при каждом переходе в PlayState ──────
 
+    /**
+     * Восстанавливает биндинги клавиш при входе в состояние (в т.ч. при
+     * возврате из {@link PauseState}).
+     */
     @Override
     public void onEnter() {
         // Восстанавливаем привязки после возврата из PauseState
         bindKeys();
     }
 
-    // ── Update ───────────────────────────────────────────────────────────────
 
+    /**
+     * Тик игровой логики: ввод → игрок → враги (с проверкой удара) → сбор
+     * орехов → шипы → дверь (открыть/перейти на LevelComplete) → проверка
+     * падения за нижний край экрана.
+     */
     @Override
     public void update() {
         input.processCommands(); // выполнить команды из очереди InputHandler
@@ -219,8 +244,12 @@ public class PlayState implements GameState {
         }
     }
 
-    // ── Render ───────────────────────────────────────────────────────────────
 
+    /**
+     * Отрисовка сцены в порядке слоёв: фон → уровень → предметы → враги →
+     * игрок → виньетка → HUD → плашка с подсказкой про сундук (если орехи
+     * ещё не собраны).
+     */
     @Override
     public void render(Graphics2D g) {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -274,7 +303,11 @@ public class PlayState implements GameState {
         g.setPaint(saved);
     }
 
-    // ── Фон ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Рисует осенний фон ({@link Sprites#BG_AUTUMN}) на всё окно.
+     * При отсутствии спрайта — фолбэк-градиент «небо».
+     */
 
     private void drawBackground(Graphics2D g) {
         if (Sprites.BG_AUTUMN != null) {

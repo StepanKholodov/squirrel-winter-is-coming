@@ -4,8 +4,17 @@ package ru.kholodov.game.levels;
 import java.io.*;
 import java.util.*;
 
+/**
+ * Загрузчик уровней из текстовых ресурсов формата {@code /levels/levelN.txt}.
+ * <p>
+ * Каждая строка файла — ряд символов карты ({@code '#'}, {@code '.'},
+ * {@code 'P'}, {@code 'N'}, {@code 'T'}, {@code 'D'}, {@code 'E'}, {@code 'C'};
+ * см. {@link Level}). Если файл не найден — используется встроенный fallback,
+ * чтобы игра не падала на пустых рантаймах.
+ */
 public class LevelLoader {
 
+    /** Резервный пустой уровень — рисуется, если файл уровня недоступен. */
     private static final String[] FALLBACK_1 = {
             "#########################",
             "#.......................#",
@@ -25,6 +34,12 @@ public class LevelLoader {
     };
 
 
+    /**
+     * Загружает уровень по пути в classpath (например, {@code "/levels/level1.txt"}).
+     * Если ресурс не найден — печатает предупреждение в stderr и возвращает
+     * fallback-уровень. {@link IOException} пробрасывается только при настоящей
+     * ошибке чтения.
+     */
     public static Level load(String resourcePath) throws IOException {
         InputStream is = LevelLoader.class.getResourceAsStream(resourcePath);
 
@@ -37,6 +52,7 @@ public class LevelLoader {
         return parseLines(Arrays.asList(FALLBACK_1));
     }
 
+    /** Читает строки из потока и делегирует их разбор в {@link #parseLines}. */
     private static Level parseStream(InputStream is) throws IOException {
         List<String> lines = new ArrayList<>();
         try (BufferedReader r = new BufferedReader(new InputStreamReader(is))) {
@@ -46,6 +62,10 @@ public class LevelLoader {
         return parseLines(lines);
     }
 
+    /**
+     * Превращает список строк в прямоугольную {@code char[][]}-сетку,
+     * добивая короткие строки символом {@code '.'}.
+     */
     private static Level parseLines(List<String> lines) {
         int rows = lines.size();
         int cols = lines.stream().mapToInt(String::length).max().orElse(0);

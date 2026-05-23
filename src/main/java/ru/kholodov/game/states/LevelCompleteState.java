@@ -10,19 +10,37 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Objects;
 
+/**
+ * Экран успешного прохождения уровня. Если это не последний уровень —
+ * ENTER ведёт на следующий, R — в главное меню. Если последний (≥
+ * {@link #MAX_LEVEL}) — показывает «YOU WIN!» и обе клавиши ведут в меню.
+ * <p>
+ * Биндинги ставятся не сразу, а через 40 тиков — чтобы случайный «нажатый»
+ * пробел/энтер из момента победы не пролетел сразу через экран.
+ */
 public class LevelCompleteState implements GameState {
+
+    /** Номер последнего уровня — на нём показываем «YOU WIN!». */
     private final static int MAX_LEVEL = 3;
     private final InputHandler input;
     private final int levelNumber;
     private int timer = 0;
     private boolean bindingsRegistered = false;
 
+    /**
+     * @param input       общий обработчик ввода
+     * @param levelNumber номер только что пройденного уровня
+     */
     public LevelCompleteState(InputHandler input, int levelNumber) {
         this.input = input;
         this.levelNumber = levelNumber;
         // Биндинги регистрируются по таймеру в update() — задержка от случайных нажатий.
     }
 
+    /**
+     * Тикает таймер; на 40-м тике вешает ENTER (следующий уровень или меню)
+     * и R (меню).
+     */
     @Override
     public void update() {
         input.processCommands();
@@ -41,6 +59,10 @@ public class LevelCompleteState implements GameState {
         }
     }
 
+    /**
+     * Рисует осенний фон с золотым светом снизу, заголовок «LEVEL COMPLETE!»
+     * (или «YOU WIN!» на последнем уровне) и подписи к клавишам.
+     */
     @Override
     public void render(Graphics2D g) {
         int W = GameWindow.WIDTH, H = GameWindow.HEIGHT;

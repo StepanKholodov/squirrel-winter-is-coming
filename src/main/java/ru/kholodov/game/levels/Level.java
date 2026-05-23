@@ -5,8 +5,21 @@ import ru.kholodov.game.engine.Sprites;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/**
+ * Сетка тайлов уровня. Хранит карту как двумерный массив символов, где:
+ * <ul>
+ *   <li>{@code '#'} — сплошной тайл (стена/пол),</li>
+ *   <li>{@code '.'} — пусто,</li>
+ *   <li>{@code 'P'} — спавн игрока,</li>
+ *   <li>{@code 'N'} — жёлудь, {@code 'T'} — шипы, {@code 'D'} — сундук,</li>
+ *   <li>{@code 'E'} — патрульный враг (ёжик), {@code 'C'} — преследователь (ворон).</li>
+ * </ul>
+ * Спавн сущностей делает {@code PlayState}, а сам {@link Level} отвечает за
+ * запрос тайла, поиск спавна, подсчёт орехов и отрисовку.
+ */
 public class Level {
 
+    /** Размер тайла в пикселях (квадрат). */
     public static final int TILE_SIZE = 32;
 
     // Визуальная высота платформы (> TILE_SIZE, чтобы трава торчала над хитбоксом)
@@ -16,23 +29,36 @@ public class Level {
 
     private final char[][] tiles;
 
+    /**
+     * @param tiles прямоугольная карта символов (см. описание класса)
+     */
     public Level(char[][] tiles) {
         this.tiles = tiles;
     }
 
+    /**
+     * Тайл в позиции {@code (row, col)}. За пределами карты возвращается
+     * {@code '#'} — это упрощает физику игрока на краях.
+     */
     public char getTile(int row, int col) {
         if (row < 0 || row >= tiles.length || col < 0 || col >= tiles[0].length) return '#';
         return tiles[row][col];
     }
 
+    /** Количество строк карты. */
     public int getRows() {
         return tiles.length;
     }
 
+    /** Количество столбцов карты. */
     public int getCols() {
         return tiles[0].length;
     }
 
+    /**
+     * Ищет символ {@code 'P'} и возвращает пиксельные координаты левого
+     * верхнего угла этого тайла. Если на карте нет 'P' — возвращает (32, 32).
+     */
     public int[] findSpawn() {
         for (int r = 0; r < tiles.length; r++)
             for (int c = 0; c < tiles[r].length; c++)
@@ -40,6 +66,7 @@ public class Level {
         return new int[]{32, 32};
     }
 
+    /** Считает количество символов {@code 'N'} (орехов) на карте. */
     public int countNuts() {
         int n = 0;
         for (char[] row : tiles)
@@ -50,6 +77,16 @@ public class Level {
 
     // ── Render ───────────────────────────────────────────────────────────────────
 
+    /**
+     * Рендерит уровень в два прохода:
+     * <ol>
+     *   <li>сгруппированные горизонтальные ряды {@code '#'} (без крайних строк/столбцов) —
+     *       платформы;</li>
+     *   <li>полоса земли на самой нижней строке — одним растянутым спрайтом.</li>
+     * </ol>
+     * Периметр карты (внешние стены) намеренно не рисуется — он работает как
+     * невидимый барьер коллизий.
+     */
     public void render(Graphics2D g) {
         // Качество интерполяции — важно для scaled sprites
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,

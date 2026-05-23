@@ -9,6 +9,15 @@ import ru.kholodov.game.strategies.EnemyStrategy;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/**
+ * Общий класс врага. Поведение делегировано {@link EnemyStrategy} (паттерн
+ * Strategy): {@link ru.kholodov.game.strategies.PatrolStrategy} — патруль по
+ * горизонтали (ёжик), {@link ChaseStrategy} — преследование игрока (ворон).
+ * <p>
+ * По типу стратегии {@link #render(Graphics2D)} выбирает соответствующий
+ * спрайт-стрип. Направление взгляда определяется автоматически по знаку
+ * горизонтального смещения за тик.
+ */
 public class Enemy extends GameObject {
 
     private EnemyStrategy strategy;
@@ -17,16 +26,27 @@ public class Enemy extends GameObject {
     private float prevX = Float.NaN;
     private boolean facingRight = true;
 
+    /**
+     * @param x        стартовая X
+     * @param y        стартовая Y
+     * @param strategy поведение врага
+     * @param level    уровень для проверки коллизий с тайлами {@code '#'}
+     */
     public Enemy(float x, float y, EnemyStrategy strategy, Level level) {
         super(x, y, 28, 28);
         this.strategy = strategy;
         this.level = level;
     }
 
+    /** Заменяет стратегию поведения на лету. */
     public void setStrategy(EnemyStrategy strategy) {
         this.strategy = strategy;
     }
 
+    /**
+     * Тик: двигает счётчик анимации, запоминает прошлую X для определения
+     * направления взгляда и делегирует логику движения стратегии.
+     */
     @Override
     public void update() {
         animTimer++;
@@ -38,6 +58,11 @@ public class Enemy extends GameObject {
         }
     }
 
+    /**
+     * Рисует врага: выбирает стрип ({@code ENEMY_CHASE} или {@code ENEMY_PATROL_RUN})
+     * по типу стратегии, нужный кадр — по {@code animTimer}; отзеркаливает
+     * спрайт через отрицательный {@code width} при движении влево.
+     */
     @Override
     public void render(Graphics2D g) {
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
@@ -62,17 +87,20 @@ public class Enemy extends GameObject {
         }
     }
 
+    /** Прямой сеттер X — стратегиям и снеп-логике в {@code PlayState}. */
     public void setX(float x) {
         this.x = x;
     }
 
+    /** Прямой сеттер Y — стратегиям и снеп-логике в {@code PlayState}. */
     public void setY(float y) {
         this.y = y;
     }
 
     /**
-     * Пробует сдвинуть врага по X на dx с учётом коллизий с тайлами '#'.
-     * Если на пути сплошной тайл — прижимается к его краю и возвращает false.
+     * Пробует сдвинуть врага по X на {@code dx} с учётом коллизий с тайлами {@code '#'}.
+     * Если на пути сплошной тайл — прижимается к его краю и возвращает {@code false}.
+     * Используется стратегиями для безопасного шага.
      */
     public boolean tryMoveX(float dx) {
         if (dx == 0) return true;
@@ -98,7 +126,8 @@ public class Enemy extends GameObject {
     }
 
     /**
-     * Пробует сдвинуть врага по Y на dy с учётом коллизий. Симметрично tryMoveX.
+     * Пробует сдвинуть врага по Y на {@code dy} с учётом коллизий.
+     * Симметрично {@link #tryMoveX}.
      */
     public boolean tryMoveY(float dy) {
         if (dy == 0) return true;
@@ -123,6 +152,7 @@ public class Enemy extends GameObject {
         return true;
     }
 
+    /** Проверка тайла {@code '#'} в позиции карты. */
     private boolean isSolid(int row, int col) {
         return level.getTile(row, col) == '#';
     }

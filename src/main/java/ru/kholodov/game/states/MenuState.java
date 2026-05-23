@@ -10,6 +10,13 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 
+/**
+ * Стартовый экран: фоновая картинка, заголовок с золотым градиентом,
+ * мигающая кнопка «Press ENTER» и подсказки по управлению.
+ * <p>
+ * ENTER в {@link #onEnter()} запускает первый уровень. Сами шрифты и фон
+ * грузятся локально в конструкторе (исторически — до появления {@code Fonts}).
+ */
 public class
 MenuState implements GameState {
 
@@ -22,6 +29,10 @@ MenuState implements GameState {
     private final Font fontButton;  // PixelifySans-Bold средний
     private final Font fontHint;    // PixelifySans-Regular мелкий
 
+    /**
+     * Загружает фон и шрифты. Если файлы недоступны — подменяет на Arial,
+     * чтобы меню оставалось видимым.
+     */
     public MenuState(InputHandler input) {
         this.input = input;
         // Загружаем фон
@@ -35,6 +46,11 @@ MenuState implements GameState {
         fontHint = (pixelReg != null) ? pixelReg.deriveFont(Font.PLAIN, 16f) : new Font("Arial", Font.PLAIN, 14);
     }
 
+    /**
+     * Регистрирует ENTER — запуск первого уровня. Привязка ставится в
+     * {@code onEnter}, потому что {@link ru.kholodov.game.managers.GameManager}
+     * чистит биндинги после конструктора.
+     */
     @Override
     public void onEnter() {
         input.bindOnPress(KeyEvent.VK_ENTER,
@@ -53,7 +69,7 @@ MenuState implements GameState {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-        // ── Фон ──────────────────────────────────────────────────────────────
+        // Фон
         if (background != null) {
             // Растягиваем на весь экран
             g.drawImage(background, 0, 0, W, H, null);
@@ -62,7 +78,6 @@ MenuState implements GameState {
             g.fillRect(0, 0, W, H);
         }
 
-        // ── Тёмный градиент-оверлей для читаемости текста ────────────────────
         GradientPaint topFade = new GradientPaint(0, 0, new Color(0, 0, 0, 200), 0, H / 2, new Color(0, 0, 0, 0));
         g.setPaint(topFade);
         g.fillRect(0, 0, W, H / 2);
@@ -71,7 +86,7 @@ MenuState implements GameState {
         g.setPaint(botFade);
         g.fillRect(0, H / 2, W, H / 2);
 
-        // ── Заголовок ─────────────────────────────────────────────────────────
+        // Заголовок
         String title = "Squirrel: Winter Is Coming";
         g.setFont(fontTitle);
         FontMetrics fm = g.getFontMetrics();
@@ -86,21 +101,21 @@ MenuState implements GameState {
         g.setPaint(titleGrad);
         g.drawString(title, tx, ty);
 
-        // ── Тонкая декоративная линия ─────────────────────────────────────────
+        // Тонкая декоративная линия
         g.setColor(new Color(210, 160, 40, 180));
         g.setStroke(new BasicStroke(2f));
         int lineY = ty + 18;
         g.drawLine(tx + 10, lineY, tx + fm.stringWidth(title) - 10, lineY);
         g.setStroke(new BasicStroke(1f));
 
-        // ── Подзаголовок ─────────────────────────────────────────────────────
+        //  Подзаголовок
         g.setFont(fontHint);
         fm = g.getFontMetrics();
         String sub = "Help the squirrel collect acorns before winter comes!";
         g.setColor(new Color(230, 210, 170, 210));
         g.drawString(sub, (W - fm.stringWidth(sub)) / 2, ty + 44);
 
-        // ── Кнопка START (мигает) ─────────────────────────────────────────────
+        // Кнопка START (мигает)
         if ((timer / 28) % 2 == 0) {
             g.setFont(fontButton);
             fm = g.getFontMetrics();
@@ -123,7 +138,7 @@ MenuState implements GameState {
             g.drawString(btn, bx, by);
         }
 
-        // ── Управление ────────────────────────────────────────────────────────
+        // Управление
         g.setFont(fontHint);
         fm = g.getFontMetrics();
         String[] hints = {
@@ -141,8 +156,9 @@ MenuState implements GameState {
         }
     }
 
-    // ── Вспомогательные методы ────────────────────────────────────────────────
+    // Вспомогательные методы
 
+    /** Загружает PNG из classpath; при ошибке возвращает {@code null}. */
     private BufferedImage loadImage(String path) {
         try (InputStream is = getClass().getResourceAsStream(path)) {
             if (is == null) {
@@ -156,6 +172,7 @@ MenuState implements GameState {
         }
     }
 
+    /** Загружает TTF-шрифт из classpath; при ошибке возвращает {@code null}. */
     private Font loadFont(String path) {
         try (InputStream is = getClass().getResourceAsStream(path)) {
             if (is == null) {

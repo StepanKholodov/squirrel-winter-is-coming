@@ -7,6 +7,12 @@ import ru.kholodov.game.engine.Sprites;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/**
+ * HUD игрового поля: панели жизней и орехов слева, метка «Level N» справа.
+ * <p>
+ * Реализует {@link PlayerObserver} и обновляет внутренние счётчики при
+ * нотификации от {@code Player}. Сам рендер вызывается из {@code PlayState.render}.
+ */
 public class HUD implements PlayerObserver {
 
     private static final int MAX_LIVES = 2;
@@ -16,22 +22,31 @@ public class HUD implements PlayerObserver {
     private final int totalNuts;
     private final int levelNum;
 
+    /**
+     * @param totalNuts общее число орехов на уровне (для строки «N / total»)
+     * @param levelNum  номер уровня для подписи «Level N»
+     */
     public HUD(int totalNuts, int levelNum) {
         this.totalNuts = totalNuts;
         this.levelNum = levelNum;
     }
 
+    /** Observer-колбэк: запоминает актуальные значения для отрисовки. */
     @Override
     public void onPlayerChanged(int lives, int nutsCollected) {
         this.lives = lives;
         this.nutsCollected = nutsCollected;
     }
 
+    /**
+     * Рисует все три HUD-панели (жизни, орехи, уровень) с тенями и
+     * мягким glow-фоном за счётчиком орехов.
+     */
     public void render(Graphics2D g) {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-        // ── Панель «Lives» ───────────────────────────────────────────────────
+        // Панель «Lives»
         drawPanel(g, 10, 10, 196, 44);
 
         g.setFont(Fonts.HUD);
@@ -46,7 +61,7 @@ public class HUD implements PlayerObserver {
             }
         }
 
-        // ── Панель «Nuts» ─────────────────────────────────────────────────────
+        // Панель «Nuts»
         drawPanel(g, 10, 62, 196, 38);
 
         // Тёплый glow за надписью с орехами
@@ -62,7 +77,7 @@ public class HUD implements PlayerObserver {
         Fonts.drawShadow(g, "Nuts  " + nutsCollected + " / " + totalNuts, 22, 88,
                 new Color(0, 0, 0, 200), new Color(255, 220, 110));
 
-        // ── «Level N» — справа ────────────────────────────────────────────────
+        //  «Level N» — справа
         g.setFont(Fonts.HUD);
         FontMetrics fm = g.getFontMetrics();
         String lvl = "Level " + levelNum;

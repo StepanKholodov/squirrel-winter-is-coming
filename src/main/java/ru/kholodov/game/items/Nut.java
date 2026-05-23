@@ -5,16 +5,32 @@ import ru.kholodov.game.entities.GameObject;
 
 import java.awt.*;
 
+/**
+ * Жёлудь — собираемый предмет. Появляется на карте как символ {@code 'N'}.
+ * <p>
+ * Хитбокс 16×16 центрирован внутри тайла 32×32 (через смещение +8). Касание
+ * игроком увеличивает счётчик в {@code Player} и удаляет объект из мира.
+ * Когда все жёлуди собраны, сундук-выход открывается.
+ */
 public class Nut extends GameObject {
 
+    /**
+     * @param x левая координата тайла (хитбокс сдвинут на +8 для центрирования)
+     * @param y верхняя координата тайла (хитбокс сдвинут на +8)
+     */
     public Nut(float x, float y) {
         super(x + 8, y + 8, 16, 16);
     }
 
+    /** Статичный собираемый объект — обновление не требуется. */
     @Override
     public void update() {
     }
 
+    /**
+     * Рисует жёлудь и пульсирующий тёплый glow за ним. Спрайт берётся из
+     * {@link Sprites#ACORN}; если пуст — ничего не рисуем.
+     */
     @Override
     public void render(Graphics2D g) {
         if (Sprites.ACORN.length == 0) return;

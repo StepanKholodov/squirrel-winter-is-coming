@@ -17,28 +17,35 @@ public class GameManager {
     private GameState currentState;
     private InputHandler input;
 
+    /** Скрыт от внешнего вызова — singleton. */
     private GameManager() {
     }
 
+    /** Единая точка доступа к экземпляру. */
     public static GameManager getInstance() {
         return INSTANCE;
     }
 
     /**
-     * Регистрируется один раз из GameWindow — чтобы при смене состояния чистить биндинги.
+     * Регистрируется один раз из {@link ru.kholodov.game.engine.GameWindow} —
+     * нужен для {@link #setCurrentState}, который чистит биндинги клавиш
+     * при смене состояния.
      */
     public void setInput(InputHandler input) {
         this.input = input;
     }
 
+    /** Текущее активное состояние; может быть {@code null} до первого вызова setCurrentState. */
     public GameState getCurrentState() {
         return currentState;
     }
 
     /**
      * Меняет состояние с полным жизненным циклом:
-     * prev.onExit() → clearBindings → next.onEnter()
-     * Состояния больше не должны сами вызывать input.clearBindings().
+     * {@code prev.onExit() → input.clearBindings → next.onEnter()}.
+     * <p>
+     * Сами состояния не должны вызывать {@code clearBindings()} вручную —
+     * это сделает менеджер.
      */
     public void setCurrentState(GameState next) {
         if (currentState != null) currentState.onExit();
