@@ -1,12 +1,18 @@
 package ru.kholodov.game.enemies;
 
+import ru.kholodov.game.engine.Sprites;
 import ru.kholodov.game.entities.GameObject;
+import ru.kholodov.game.strategies.ChaseStrategy;
 import ru.kholodov.game.strategies.EnemyStrategy;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class Enemy extends GameObject {
 
     private EnemyStrategy strategy;
+    private int     animTimer   = 0;
+    private float   prevX       = Float.NaN;
+    private boolean facingRight = true;
 
     public Enemy(float x, float y, EnemyStrategy strategy) {
         super(x, y, 28, 28);
@@ -19,21 +25,36 @@ public class Enemy extends GameObject {
 
     @Override
     public void update() {
+        animTimer++;
+        prevX = x;
         strategy.execute(this);
+        if (!Float.isNaN(prevX)) {
+            if      (x > prevX) facingRight = true;
+            else if (x < prevX) facingRight = false;
+        }
     }
 
     @Override
     public void render(Graphics2D g) {
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-        g.setColor(new Color(50, 50, 160));
-        g.fillOval((int) x, (int) y, width, height);
-        g.setColor(new Color(30, 30, 100));
-        g.drawOval((int) x, (int) y, width, height);
-        g.setColor(Color.RED);
+        BufferedImage[] strip = (strategy instanceof ChaseStrategy)
+                ? Sprites.ENEMY_CHASE
+                : Sprites.ENEMY_PATROL_RUN;
 
-        g.fillOval((int) x + 6,  (int) y + 8, 5, 5);
-        g.fillOval((int) x + 16, (int) y + 8, 5, 5);
+        if (strip == null || strip.length == 0) return;
+        BufferedImage img = strip[(animTimer / 6) % strip.length];
+
+        int drawW = 56, drawH = 56;
+        int drawX = (int) x + width / 2 - drawW / 2;
+        int drawY = (int) y + height - drawH;
+
+        if (facingRight) {
+            g.drawImage(img, drawX, drawY, drawW, drawH, null);
+        } else {
+            g.drawImage(img, drawX + drawW, drawY, -drawW, drawH, null);
+        }
     }
 
     public void setX(float x) { this.x = x; }

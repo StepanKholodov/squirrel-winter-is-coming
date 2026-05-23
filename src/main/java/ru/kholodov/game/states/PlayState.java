@@ -1,6 +1,7 @@
 package ru.kholodov.game.states;
 
 import ru.kholodov.game.engine.GameWindow;
+import ru.kholodov.game.engine.Sprites;
 import ru.kholodov.game.entities.ChaseEnemyFactory;
 import ru.kholodov.game.entities.EnemyFactory;
 import ru.kholodov.game.entities.PatrolEnemyFactory;
@@ -170,11 +171,14 @@ public class PlayState implements GameState {
         }
 
         // Дверь — только если все орехи собраны
-        if (door != null && nuts.isEmpty()
-                && player.getBounds().intersects(door.getBounds())) {
-            GameManager.getInstance().setCurrentState(
-                    new LevelCompleteState(input, levelNumber));
-            return;
+        if (door != null) {
+            door.setOpen(nuts.isEmpty());
+            if (nuts.isEmpty()
+                    && player.getBounds().intersects(door.getBounds())) {
+                GameManager.getInstance().setCurrentState(
+                        new LevelCompleteState(input, levelNumber));
+                return;
+            }
         }
 
         // Выпал за нижний край экрана
@@ -216,51 +220,16 @@ public class PlayState implements GameState {
     // ── Фон ──────────────────────────────────────────────────────────────────
 
     private void drawBackground(Graphics2D g) {
-        if (levelNumber == 1) {
+        if (Sprites.BG_AUTUMN != null) {
+            g.drawImage(Sprites.BG_AUTUMN, 0, 0,
+                    GameWindow.WIDTH, GameWindow.HEIGHT, null);
+        } else {
+            // Fallback на градиент, если спрайт не загрузился
             GradientPaint sky = new GradientPaint(
                     0, 0, new Color(160, 210, 255),
                     0, GameWindow.HEIGHT, new Color(200, 230, 160));
             g.setPaint(sky);
             g.fillRect(0, 0, GameWindow.WIDTH, GameWindow.HEIGHT);
-            drawTrees(g, new Color(70, 120, 50), new Color(90, 65, 35));
-        } else {
-            GradientPaint sky = new GradientPaint(
-                    0, 0, new Color(90, 100, 130),
-                    0, GameWindow.HEIGHT, new Color(120, 110, 90));
-            g.setPaint(sky);
-            g.fillRect(0, 0, GameWindow.WIDTH, GameWindow.HEIGHT);
-            drawTrees(g, new Color(40, 70, 35), new Color(60, 45, 25));
-            drawRain(g);
         }
-    }
-
-    private void drawTrees(Graphics2D g, Color leafColor, Color trunkColor) {
-        int[] treeXs = { 20, 110, 230, 370, 470, 580, 690, 760 };
-        for (int tx : treeXs) {
-            g.setColor(trunkColor);
-            g.fillRect(tx + 6, 310, 12, 70);
-
-            g.setColor(leafColor.darker());
-            int[] x1 = { tx + 12, tx - 20, tx + 44 };
-            int[] y1 = { 200, 320, 320 };
-            g.fillPolygon(x1, y1, 3);
-
-            g.setColor(leafColor);
-            int[] x2 = { tx + 12, tx - 10, tx + 34 };
-            int[] y2 = { 230, 320, 320 };
-            g.fillPolygon(x2, y2, 3);
-        }
-    }
-
-    private void drawRain(Graphics2D g) {
-        long t = System.currentTimeMillis();
-        g.setColor(new Color(180, 200, 220, 80));
-        g.setStroke(new BasicStroke(1));
-        for (int i = 0; i < 40; i++) {
-            int rx = (int) ((i * 137L + t / 20) % GameWindow.WIDTH);
-            int ry = (int) ((i * 97L  + t / 15) % GameWindow.HEIGHT);
-            g.drawLine(rx, ry, rx - 2, ry + 12);
-        }
-        g.setStroke(new BasicStroke(1));
     }
 }

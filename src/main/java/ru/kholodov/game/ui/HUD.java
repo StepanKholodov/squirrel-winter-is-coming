@@ -1,10 +1,14 @@
 package ru.kholodov.game.ui;
 
+import ru.kholodov.game.engine.Sprites;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class HUD implements PlayerObserver {
 
-    private int lives         = 3;
+    private static final int MAX_LIVES = 3;
+
+    private int lives         = MAX_LIVES;
     private int nutsCollected = 0;
     private final int totalNuts;
     private final int levelNum;
@@ -27,9 +31,13 @@ public class HUD implements PlayerObserver {
         g.setFont(new Font("Arial", Font.BOLD, 16));
         g.setColor(Color.WHITE);
         g.drawString("Lives:", 16, 30);
-        for (int i = 0; i < lives; i++) {
-            g.setColor(new Color(220, 50, 50));
-            drawHeart(g, 72 + i * 22, 14);
+
+        int heartSize = 22;
+        for (int i = 0; i < MAX_LIVES; i++) {
+            BufferedImage img = (i < lives) ? Sprites.HEART : Sprites.HEART_EMPTY;
+            if (img != null) {
+                g.drawImage(img, 72 + i * (heartSize + 2), 12, heartSize, heartSize, null);
+            }
         }
 
         g.setColor(new Color(0, 0, 0, 150));
@@ -39,13 +47,5 @@ public class HUD implements PlayerObserver {
 
         g.setColor(Color.WHITE);
         g.drawString("Level " + levelNum, 700, 28);
-    }
-
-    private void drawHeart(Graphics2D g, int x, int y) {
-        g.fillOval(x, y, 10, 10);
-        g.fillOval(x + 6, y, 10, 10);
-        int[] hx = {x, x + 16, x + 8};
-        int[] hy = {y + 6, y + 6, y + 16};
-        g.fillPolygon(hx, hy, 3);
     }
 }

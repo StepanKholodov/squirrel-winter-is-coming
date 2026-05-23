@@ -24,10 +24,6 @@ MenuState implements GameState {
 
     public MenuState(InputHandler input) {
         this.input = input;
-        input.clearBindings();
-        input.bindOnPress(KeyEvent.VK_ENTER,
-                new ChangeStateCommand(() -> new PlayState(input, 1)));
-
         // Загружаем фон
         background = loadImage("/backgrounds/menu/menu_bg.png");
 
@@ -37,6 +33,12 @@ MenuState implements GameState {
         fontTitle  = (pixelBold != null) ? pixelBold.deriveFont(Font.PLAIN, 52f) : new Font("Arial", Font.BOLD, 42);
         fontButton = (pixelBold != null) ? pixelBold.deriveFont(Font.PLAIN, 26f) : new Font("Arial", Font.BOLD, 22);
         fontHint   = (pixelReg  != null) ? pixelReg.deriveFont(Font.PLAIN,  16f) : new Font("Arial", Font.PLAIN, 14);
+    }
+
+    @Override
+    public void onEnter() {
+        input.bindOnPress(KeyEvent.VK_ENTER,
+                new ChangeStateCommand(() -> new PlayState(input, 1)));
     }
 
     @Override

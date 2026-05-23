@@ -1,9 +1,11 @@
 package ru.kholodov.game.entities;
 
+import ru.kholodov.game.engine.Sprites;
 import ru.kholodov.game.input.PlayerActions;
 import ru.kholodov.game.levels.Level;
 import ru.kholodov.game.ui.PlayerObserver;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +41,7 @@ public class Player extends GameObject implements PlayerActions {
     private int lives         = 3;
     private int nutsCollected = 0;
     private int invTimer      = 0;   // кадры неуязвимости после удара
+    private int animTimer     = 0;   // счётчик кадров для анимации спрайтов
 
     private final Level level;
 
@@ -96,6 +99,7 @@ public class Player extends GameObject implements PlayerActions {
     @Override
     public void update() {
         if (invTimer > 0) invTimer--;
+        animTimer++;
 
         // Горизонтальное движение по флагам — команды уже установили их
         if (movingLeft)  x -= SPEED;
@@ -187,34 +191,29 @@ public class Player extends GameObject implements PlayerActions {
         // Мигание при неуязвимости
         if (invTimer > 0 && (invTimer % 10) < 4) return;
 
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-        // Тело
-        g.setColor(new Color(180, 110, 50));
-        g.fillRoundRect((int) x, (int) y + 6, width, height - 6, 8, 8);
+        // Выбор стрипа по состоянию
+        BufferedImage[] strip;
+        if (!onGround)                          strip = Sprites.SQUIRREL_JUMP;
+        else if (movingLeft || movingRight)     strip = Sprites.SQUIRREL_RUN;
+        else                                    strip = Sprites.SQUIRREL_IDLE;
 
-        // Голова
-        g.setColor(new Color(200, 130, 60));
-        int headX = facingRight ? (int) x + 4 : (int) x;
-        g.fillOval(headX, (int) y, 22, 20);
+        if (strip == null || strip.length == 0) return;
+        BufferedImage img = strip[(animTimer / 6) % strip.length];
 
-        // Ухо
-        int earX = facingRight ? (int) x + 14 : (int) x + 2;
-        int[] ex = { earX, earX + 6, earX + 3 };
-        int[] ey = { (int) y + 2, (int) y + 2, (int) y - 8 };
-        g.fillPolygon(ex, ey, 3);
+        // Визуал крупнее хитбокса; низ выровнен с низом хитбокса
+        int drawW = 56, drawH = 56;
+        int drawX = (int) x + width / 2 - drawW / 2;
+        int drawY = (int) y + height - drawH;
 
-        // Глаз
-        g.setColor(Color.BLACK);
-        int eyeX = facingRight ? (int) x + 17 : (int) x + 4;
-        g.fillOval(eyeX, (int) y + 5, 4, 4);
-
-        // Хвост
-        g.setColor(new Color(220, 160, 80));
-        g.setStroke(new BasicStroke(5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-        int tailX = facingRight ? (int) x - 6 : (int) x + width - 2;
-        g.drawArc(tailX, (int) y, 14, 22, facingRight ? 90 : 270, 180);
-        g.setStroke(new BasicStroke(1));
+        if (facingRight) {
+            g.drawImage(img, drawX, drawY, drawW, drawH, null);
+        } else {
+            // Зеркало через отрицательный width
+            g.drawImage(img, drawX + drawW, drawY, -drawW, drawH, null);
+        }
     }
 
     // ── Геттеры ──────────────────────────────────────────────────────────────

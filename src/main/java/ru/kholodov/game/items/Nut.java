@@ -1,5 +1,6 @@
 package ru.kholodov.game.items;
 
+import ru.kholodov.game.engine.Sprites;
 import ru.kholodov.game.entities.GameObject;
 import java.awt.*;
 
@@ -13,13 +14,14 @@ public class Nut extends GameObject {
 
     @Override
     public void render(Graphics2D g) {
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(new Color(160, 100, 30));
-        g.fillOval((int) x, (int) y, width, height);
-        g.setColor(new Color(100, 60, 10));
-        g.drawOval((int) x, (int) y, width, height);
-        // шляпка
-        g.setColor(new Color(80, 50, 20));
-        g.fillRoundRect((int) x + 2, (int) y - 3, width - 4, 5, 3, 3);
+        if (Sprites.ACORN.length == 0) return;
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+        // Визуал чуть больше хитбокса, центрируем на нём
+        int drawW = 24, drawH = 24;
+        int drawX = (int) x + width  / 2 - drawW / 2;
+        int drawY = (int) y + height / 2 - drawH / 2;
+        g.drawImage(Sprites.ACORN[0], drawX, drawY, drawW, drawH, null);
     }
 }
