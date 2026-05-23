@@ -1,0 +1,48 @@
+@startuml singleton_sequence
+title Singleton — доступ к GameManager из разных мест
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor JVM as jvm
+participant "GameManager\n<<class>>" as GMClass
+participant ":GameManager\n<<instance>>" as gm
+participant ":GameWindow" as window
+participant ":GamePanel" as panel
+participant ":MenuState" as menu
+
+== Class-loading: единственный экземпляр ==
+
+jvm -> GMClass : загрузка класса
+activate GMClass
+GMClass -> gm : new GameManager() \n(private constructor)
+activate gm
+GMClass --> jvm : INSTANCE готов
+deactivate GMClass
+
+== Первое обращение: GameWindow ==
+
+window -> GMClass : GameManager.getInstance()
+GMClass --> window : INSTANCE
+window -> gm : setInput(input)
+window -> gm : setCurrentState(new MenuState(input))
+gm -> menu : onEnter()
+
+== Игровой цикл: GamePanel читает state ==
+
+panel -> GMClass : GameManager.getInstance()
+GMClass --> panel : тот же INSTANCE
+panel -> gm : getCurrentState()
+gm --> panel : currentState
+panel -> menu : update()
+
+== Команда меняет state — снова тот же экземпляр ==
+
+note over panel,gm
+  ChangeStateCommand.execute():
+   GameManager.getInstance().setCurrentState(...)
+  получает тот же INSTANCE,
+  потому что Singleton.
+end note
+
+@enduml

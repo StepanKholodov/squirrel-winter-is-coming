@@ -18,7 +18,7 @@ public class LevelCompleteState implements GameState {
     public LevelCompleteState(InputHandler input, int levelNumber) {
         this.input       = input;
         this.levelNumber = levelNumber;
-        input.clearBindings();
+        // Биндинги регистрируются по таймеру в update() — задержка от случайных нажатий.
     }
 
     @Override

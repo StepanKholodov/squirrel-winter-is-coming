@@ -10,7 +10,8 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 
-public class MenuState implements GameState {
+public class
+MenuState implements GameState {
 
     private final InputHandler input;
     private int timer = 0;

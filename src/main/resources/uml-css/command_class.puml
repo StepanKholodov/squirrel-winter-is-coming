@@ -1,0 +1,89 @@
+@startuml command_class
+title Command — InputHandler и команды (class diagram)
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+interface Command <<Command>> {
+  + execute() : void
+}
+
+class MoveCommand <<ConcreteCommand>> {
+  - player : PlayerActions
+  - direction : Direction
+  - start : boolean
+  + execute() : void
+}
+
+class JumpCommand <<ConcreteCommand>> {
+  - player : PlayerActions
+  + execute() : void
+}
+
+class ChangeStateCommand <<ConcreteCommand>> {
+  - nextState : Supplier<GameState>
+  + execute() : void
+}
+
+class InputHandler <<Invoker>> {
+  - onPress   : Map<Integer, Command>
+  - onRelease : Map<Integer, Command>
+  - pressed   : Set<Integer>
+  - queue     : Queue<Command>
+  + bindOnPress(key, cmd) : void
+  + bindOnRelease(key, cmd) : void
+  + clearBindings() : void
+  + processCommands() : void
+  + keyPressed(e) : void
+  + keyReleased(e) : void
+}
+
+interface PlayerActions <<Receiver>> {
+  + startMovingLeft() : void
+  + stopMovingLeft() : void
+  + startMovingRight() : void
+  + stopMovingRight() : void
+  + jump() : void
+}
+
+class Player {
+  - movingLeft : boolean
+  - movingRight : boolean
+  + update() : void
+  + startMovingLeft() : void
+  + stopMovingLeft() : void
+  + startMovingRight() : void
+  + stopMovingRight() : void
+  + jump() : void
+}
+
+class GameManager <<Receiver, Singleton>> {
+  + setCurrentState(next) : void
+}
+
+MoveCommand        ..|> Command
+JumpCommand        ..|> Command
+ChangeStateCommand ..|> Command
+Player             ..|> PlayerActions
+
+InputHandler o--> "*" Command : onPress / onRelease / queue
+
+MoveCommand        --> PlayerActions : receiver
+JumpCommand        --> PlayerActions : receiver
+ChangeStateCommand --> GameManager   : receiver
+
+note right of InputHandler
+  Invoker не знает о Player или State —
+  только о Command. KeyListener кладёт
+  команды в очередь (EDT-поток),
+  игровой цикл выполняет (game-поток).
+  ConcurrentHashMap + ConcurrentLinkedQueue
+  закрывают гонку между потоками.
+end note
+
+note bottom of ChangeStateCommand
+  Supplier<GameState> — ленивое создание.
+  Состояние строится в момент нажатия,
+  а не в момент регистрации биндинга.
+end note
+@enduml

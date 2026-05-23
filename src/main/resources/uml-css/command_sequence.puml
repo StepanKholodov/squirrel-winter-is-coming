@@ -1,0 +1,73 @@
+@startuml command_sequence
+title Command — нажатие SPACE → прыжок Player'а
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor User as user
+participant "Swing EDT" as edt
+participant ":InputHandler\n<<Invoker>>" as input
+participant ":JumpCommand\n<<ConcreteCommand>>" as cmd
+participant ":GameLoop\n(game thread)" as gameLoop
+participant ":PlayState\n<<Client>>" as play
+participant ":Player\n<<Receiver>>" as player
+
+== Регистрация биндинга (один раз, в onEnter) ==
+
+play -> cmd ** : new JumpCommand(player)
+play -> input  : bindOnPress(VK_SPACE, jumpCmd)
+note right of input
+  Map<Integer, Command>:
+    VK_SPACE -> jumpCmd
+end note
+
+== Нажатие клавиши (EDT-поток) ==
+
+user -> edt   : нажал SPACE
+edt  -> input : keyPressed(VK_SPACE)
+activate input
+input -> input : pressed.add(VK_SPACE)
+input -> input : queue.offer(jumpCmd)
+deactivate input
+
+note over input
+  Команда положена в очередь, но
+  ещё не выполнена — execute()
+  произойдёт в игровом потоке.
+end note
+
+== Игровой цикл (отдельный поток) ==
+
+gameLoop -> play  : update()
+activate play
+play -> input : processCommands()
+activate input
+
+loop пока queue не пуста
+  input -> cmd : execute()
+  activate cmd
+  cmd  -> player : jump()
+  activate player
+  player -> player : velocityY = JUMP_FORCE
+  deactivate player
+  deactivate cmd
+end
+
+deactivate input
+
+play -> player : update()
+activate player
+player -> player : y += velocityY (физика прыжка)
+deactivate player
+deactivate play
+
+== Ключевой момент паттерна ==
+
+note over user, player
+  InputHandler не знает о Player.
+  JumpCommand знает Player только как PlayerActions (интерфейс).
+  Запрос (нажатие) и действие (прыжок) разделены и
+  выполняются в разных потоках через очередь.
+end note
+
+@enduml

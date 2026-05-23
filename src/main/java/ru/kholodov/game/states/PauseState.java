@@ -16,9 +16,11 @@ public class PauseState implements GameState {
     public PauseState(InputHandler input, GameState resumeState) {
         this.input       = input;
         this.resumeState = resumeState;
+    }
 
-        input.clearBindings();
-        // ESC — вернуться в игру (одно нажатие, без флага escWasDown)
+    @Override
+    public void onEnter() {
+        // ESC — вернуться в игру (resumeState.onEnter() восстановит игровые биндинги)
         input.bindOnPress(KeyEvent.VK_ESCAPE,
                 new ChangeStateCommand(() -> resumeState));
         input.bindOnPress(KeyEvent.VK_R,
