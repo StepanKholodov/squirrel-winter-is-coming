@@ -83,48 +83,62 @@ public class Level {
 
     /**
      * Рисует горизонтальный run из runLen тайлов как ОДНО целое изображение.
-     * Sprite НЕ режется на части — одно drawImage на весь блок.
-     * Низ визуала выровнен с низом collision-строки; верх выступает на (PLATFORM_H - TILE_SIZE) px.
+     * Верх спрайта выравнен с верхом коллизии — персонажи стоят чётко на спрайте,
+     * лишняя высота (PLATFORM_H - TILE_SIZE) уходит ВНИЗ как «подбрюшье» платформы.
      */
     private void drawPlatformRun(Graphics2D g, int col, int row, int runLen) {
         int drawX = col * TILE_SIZE;
         int drawW = runLen * TILE_SIZE;
-        // Низ спрайта = низ collision-строки, верх выступает выше хитбокса
-        int drawY = row * TILE_SIZE + TILE_SIZE - PLATFORM_H;
+        int drawY = row * TILE_SIZE;       // верх спрайта = верх коллизии
 
         BufferedImage sprite = Sprites.TILE_TOP;
 
         if (sprite != null) {
             g.drawImage(sprite, drawX, drawY, drawW, PLATFORM_H, null);
         } else {
-            // Fallback кодом
             g.setColor(new Color(101, 67, 33));
-            g.fillRect(drawX, row * TILE_SIZE, drawW, TILE_SIZE);
+            g.fillRect(drawX, drawY, drawW, TILE_SIZE);
             g.setColor(new Color(80, 140, 35));
-            g.fillRect(drawX, row * TILE_SIZE, drawW, 5);
+            g.fillRect(drawX, drawY, drawW, 5);
+        }
+
+        // Тень-«подбрюшье» — мягко затемняет нижнюю границу платформы для ощущения объёма
+        int shadowTop = drawY + TILE_SIZE;
+        int shadowH   = PLATFORM_H - TILE_SIZE;
+        if (shadowH > 0) {
+            Paint saved = g.getPaint();
+            g.setPaint(new GradientPaint(
+                    0, shadowTop, new Color(0, 0, 0, 90),
+                    0, shadowTop + shadowH, new Color(0, 0, 0, 0)));
+            g.fillRect(drawX, shadowTop, drawW, shadowH);
+            g.setPaint(saved);
         }
     }
 
     /**
-     * Полоса земли внизу экрана — растягивается на всю ширину как одно изображение.
-     * Коллизия уже обеспечена перimetрной строкой (maxR).
+     * Полоса земли внизу экрана. Верх спрайта = верх коллизии (rows-1)*TILE_SIZE,
+     * лишняя высота уходит ниже видимой области. Сверху добавляется тёмный градиент
+     * для ощущения массивной поверхности.
      */
     private void drawGroundStrip(Graphics2D g) {
-        int screenW = tiles[0].length * TILE_SIZE; // = 800
-        int groundY = (tiles.length - 1) * TILE_SIZE; // = 448
-
-        // Рисуем чуть выше нижнего края чтобы полоса выглядела толще
-        int drawY = groundY - (GROUND_H - TILE_SIZE); // = 448 - 16 = 432
-        int drawH = GROUND_H;                          // = 48
+        int screenW = tiles[0].length * TILE_SIZE;
+        int groundY = (tiles.length - 1) * TILE_SIZE;
 
         BufferedImage ground = Sprites.GROUND != null ? Sprites.GROUND : Sprites.TILE_MID;
 
         if (ground != null) {
-            g.drawImage(ground, 0, drawY, screenW, drawH, null);
+            g.drawImage(ground, 0, groundY, screenW, GROUND_H, null);
         } else {
-            // Fallback
             g.setColor(new Color(80, 50, 20));
-            g.fillRect(0, drawY, screenW, drawH);
+            g.fillRect(0, groundY, screenW, TILE_SIZE);
         }
+
+        // Глубина: верхняя «фаска» затемнена, низ ещё темнее — земля кажется массивной
+        Paint saved = g.getPaint();
+        g.setPaint(new GradientPaint(
+                0, groundY + 6,  new Color(0, 0, 0,   0),
+                0, groundY + TILE_SIZE, new Color(0, 0, 0, 110)));
+        g.fillRect(0, groundY + 6, screenW, TILE_SIZE - 6);
+        g.setPaint(saved);
     }
 }

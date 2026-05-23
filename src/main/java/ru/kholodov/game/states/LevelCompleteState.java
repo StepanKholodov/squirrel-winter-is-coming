@@ -7,9 +7,11 @@ import ru.kholodov.game.input.commands.ChangeStateCommand;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.util.Objects;
 
 public class LevelCompleteState implements GameState {
-
+    private final static int MAX_LEVEL = 2;
     private final InputHandler input;
     private final int levelNumber;
     private int timer = 0;
@@ -27,7 +29,7 @@ public class LevelCompleteState implements GameState {
         timer++;
         if (timer == 40 && !bindingsRegistered) {
             input.bindOnPress(KeyEvent.VK_ENTER, new ChangeStateCommand(() -> {
-                if (levelNumber < 2) {
+                if (levelNumber < MAX_LEVEL) {
                     return new PlayState(input, levelNumber + 1);
                 } else {
                     return new MenuState(input);

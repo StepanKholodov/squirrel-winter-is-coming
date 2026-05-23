@@ -24,10 +24,11 @@ public class Door extends GameObject {
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-        // Сундук чуть крупнее тайла, низом стоит на тайле
-        int drawW = 40, drawH = 40;
+        // Сундук крупнее тайла, низ — на поверхности (с лёгкой компенсацией кадра)
+        int drawW = 60, drawH = 60;
+        int feetPad = 6;
         int drawX = (int) x + width / 2 - drawW / 2;
-        int drawY = (int) y + height - drawH;
+        int drawY = (int) y + height - drawH + feetPad;
         g.drawImage(img, drawX, drawY, drawW, drawH, null);
     }
 }

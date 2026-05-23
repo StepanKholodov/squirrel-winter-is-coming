@@ -203,10 +203,11 @@ public class Player extends GameObject implements PlayerActions {
         if (strip == null || strip.length == 0) return;
         BufferedImage img = strip[(animTimer / 6) % strip.length];
 
-        // Визуал крупнее хитбокса; низ выровнен с низом хитбокса
+        // Размер визуала + компенсация пустых пикселей под лапами в кадре спрайта
         int drawW = 56, drawH = 56;
+        int feetPad = 20;                 // сдвиг вниз — ноги встают на поверхность
         int drawX = (int) x + width / 2 - drawW / 2;
-        int drawY = (int) y + height - drawH;
+        int drawY = (int) y + height - drawH + feetPad;
 
         if (facingRight) {
             g.drawImage(img, drawX, drawY, drawW, drawH, null);

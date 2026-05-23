@@ -6,7 +6,6 @@ import java.util.*;
 
 public class LevelLoader {
 
-    // Встроенный уровень 1 — используется если файл не найден
     private static final String[] FALLBACK_1 = {
             "#########################",
             "#.......................#",
@@ -25,23 +24,7 @@ public class LevelLoader {
             "#########################"
     };
 
-    private static final String[] FALLBACK_2 = {
-            "#########################",
-            "#.......................#",
-            "#...P.......N...........#",
-            "####.....####...........#",
-            "#.......................#",
-            "#.......C...............#",
-            "###.....######..........#",
-            "#...N...................#",
-            "#.........###...........#",
-            "#...T.....C.............#",
-            "###.....####.###........#",
-            "#.......................#",
-            "#......N..N.............#",
-            "#.................T..D..#",
-            "#########################"
-    };
+
 
     public static Level load(String resourcePath) throws IOException {
         InputStream is = LevelLoader.class.getResourceAsStream(resourcePath);
@@ -52,8 +35,7 @@ public class LevelLoader {
 
         // Файл не найден — берём встроенный
         System.err.println("[LevelLoader] Не найден: " + resourcePath + " — используем встроенный.");
-        String[] fallback = resourcePath.contains("2") ? FALLBACK_2 : FALLBACK_1;
-        return parseLines(Arrays.asList(fallback));
+        return parseLines(Arrays.asList(FALLBACK_1));
     }
 
     private static Level parseStream(InputStream is) throws IOException {

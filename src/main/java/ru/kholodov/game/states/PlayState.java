@@ -1,5 +1,6 @@
 package ru.kholodov.game.states;
 
+import ru.kholodov.game.engine.Fonts;
 import ru.kholodov.game.engine.GameWindow;
 import ru.kholodov.game.engine.Sprites;
 import ru.kholodov.game.entities.ChaseEnemyFactory;
@@ -54,6 +55,20 @@ public class PlayState implements GameState {
 
     // ── Загрузка уровня ──────────────────────────────────────────────────────
 
+    /**
+     * Ищет первую сплошную строку под (row, col) и возвращает Y, при котором
+     * объект высотой entityH стоит верхней гранью своего хитбокса так, чтобы
+     * нижняя грань касалась верха пола. Если пол не найден — возвращает row*ts.
+     */
+    private float snapYToFloor(int row, int col, int ts, int entityH) {
+        int floorRow = row + 1;
+        while (floorRow < level.getRows() && level.getTile(floorRow, col) != '#') {
+            floorRow++;
+        }
+        if (floorRow >= level.getRows()) return row * ts;
+        return floorRow * ts - entityH;
+    }
+
     private void load() {
         try {
             level = LevelLoader.load("/levels/level" + levelNumber + ".txt");
@@ -77,14 +92,19 @@ public class PlayState implements GameState {
                 switch (level.getTile(r, c)) {
                     case 'N' -> nuts.add(new Nut(px, py));
                     case 'T' -> traps.add(new Trap(px, py));
-                    case 'D' -> door = new Door(px, py);
+                    case 'D' -> {
+                        // Снеп двери на пол, чтобы сундук стоял на поверхности
+                        float doorY = snapYToFloor(r, c, ts, ts);
+                        door = new Door(px, doorY);
+                    }
                     case 'E' -> {
-                        // Factory Method — PatrolEnemyFactory
+                        // Factory Method — PatrolEnemyFactory; снеп Y на ближайший пол
+                        float enemyY = snapYToFloor(r, c, ts, 28);
                         EnemyFactory f = new PatrolEnemyFactory(px - 96, px + 96);
-                        enemies.add(f.create(px, py));
+                        enemies.add(f.create(px, enemyY));
                     }
                     case 'C' -> {
-                        // Factory Method — ChaseEnemyFactory
+                        // Factory Method — ChaseEnemyFactory (летает, Y оставляем)
                         EnemyFactory f = new ChaseEnemyFactory(player);
                         enemies.add(f.create(px, py));
                     }
@@ -196,6 +216,9 @@ public class PlayState implements GameState {
 
     @Override
     public void render(Graphics2D g) {
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
         drawBackground(g);
 
         level.render(g);
@@ -204,17 +227,42 @@ public class PlayState implements GameState {
         if (door != null)       door.render(g);
         for (Enemy e : enemies) e.render(g);
         player.render(g);
+
+        drawVignette(g);
         hud.render(g);
 
         // Подсказка пока не все орехи собраны
         if (door != null && !nuts.isEmpty()) {
-            g.setColor(new Color(255, 240, 100, 220));
-            g.setFont(new Font("Arial", Font.BOLD, 13));
-            String hint = "Collect all nuts to open the door!";
+            g.setFont(Fonts.BODY);
+            String hint = "Collect all nuts to open the chest";
             FontMetrics fm = g.getFontMetrics();
-            g.drawString(hint, (GameWindow.WIDTH - fm.stringWidth(hint)) / 2,
-                    GameWindow.HEIGHT - 14);
+            int hx = (GameWindow.WIDTH - fm.stringWidth(hint)) / 2;
+            int hy = GameWindow.HEIGHT - 18;
+
+            // Тёмная подложка под текст
+            int padX = 18, padY = 6;
+            g.setColor(new Color(15, 10, 5, 175));
+            g.fillRoundRect(hx - padX, hy - fm.getAscent() - padY,
+                    fm.stringWidth(hint) + padX * 2, fm.getHeight() + padY * 2, 12, 12);
+            g.setColor(new Color(210, 160, 60, 150));
+            g.drawRoundRect(hx - padX, hy - fm.getAscent() - padY,
+                    fm.stringWidth(hint) + padX * 2, fm.getHeight() + padY * 2, 12, 12);
+
+            Fonts.drawShadow(g, hint, hx, hy,
+                    new Color(0, 0, 0, 200), new Color(255, 230, 130));
         }
+    }
+
+    /** Лёгкая виньетка — затемнение по краям, чтобы взгляд тянулся к центру. */
+    private void drawVignette(Graphics2D g) {
+        int W = GameWindow.WIDTH, H = GameWindow.HEIGHT;
+        Paint saved = g.getPaint();
+        g.setPaint(new RadialGradientPaint(
+                W / 2f, H / 2f, Math.max(W, H) * 0.7f,
+                new float[]{ 0.55f, 1f },
+                new Color[]{ new Color(0, 0, 0, 0), new Color(0, 0, 0, 130) }));
+        g.fillRect(0, 0, W, H);
+        g.setPaint(saved);
     }
 
     // ── Фон ──────────────────────────────────────────────────────────────────

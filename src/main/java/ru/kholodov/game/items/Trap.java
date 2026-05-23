@@ -17,7 +17,12 @@ public class Trap extends GameObject {
         if (Sprites.TRAP_SPIKE == null) return;
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        // Хитбокс сдвинут на y+16; рисуем спрайт на весь исходный тайл (32×32)
-        g.drawImage(Sprites.TRAP_SPIKE, (int) x, (int) y - 16, 32, 32, null);
+
+        // Шипы заметно крупнее хитбокса; компенсация пустых пикселей снизу кадра
+        int drawW = 44, drawH = 44;
+        int feetPad = 20;
+        int drawX = (int) x + width / 2 - drawW / 2;
+        int drawY = (int) y + height - drawH + feetPad;
+        g.drawImage(Sprites.TRAP_SPIKE, drawX, drawY, drawW, drawH, null);
     }
 }

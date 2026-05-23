@@ -47,8 +47,9 @@ public class Enemy extends GameObject {
         BufferedImage img = strip[(animTimer / 6) % strip.length];
 
         int drawW = 56, drawH = 56;
+        int feetPad = 20;                 // компенсация пустых пикселей внизу кадра
         int drawX = (int) x + width / 2 - drawW / 2;
-        int drawY = (int) y + height - drawH;
+        int drawY = (int) y + height - drawH + feetPad;
 
         if (facingRight) {
             g.drawImage(img, drawX, drawY, drawW, drawH, null);
