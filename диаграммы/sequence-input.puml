@@ -1,0 +1,129 @@
+@startuml SequenceInput
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 8
+skinparam backgroundColor #FEFEFE
+skinparam sequence {
+    ActorBackgroundColor #4A6FA5
+    ActorFontColor White
+    ActorBorderColor #2C4A7C
+    LifeLineBorderColor #4A6FA5
+    LifeLineBackgroundColor #E8F0FF
+    ParticipantBackgroundColor #F5F8FF
+    ParticipantBorderColor #4A6FA5
+    ParticipantFontSize 12
+    ArrowColor #2C4A7C
+    NoteBackgroundColor #FFFBE6
+    NoteBorderColor #D4A017
+}
+
+title Паттерн Command — обработка нажатия клавиши
+
+actor "Пользователь" as User
+participant "InputHandler\n<<Invoker>>" as IH
+participant "MoveCommand\n<<ConcreteCommand>>" as MC
+participant "JumpCommand\n<<ConcreteCommand>>" as JC
+participant "ChangeStateCommand\n<<ConcreteCommand>>" as CC
+participant "Player\n<<Receiver>>" as P
+participant "PlayState" as PS
+participant "GameManager\n<<Singleton>>" as GM
+
+== Инициализация привязок (PlayState.bindKeys) ==
+
+PS -> IH : bindOnPress(VK_A, MoveCommand(LEFT, true))
+PS -> IH : bindOnRelease(VK_A, MoveCommand(LEFT, false))
+PS -> IH : bindOnPress(VK_D, MoveCommand(RIGHT, true))
+PS -> IH : bindOnRelease(VK_D, MoveCommand(RIGHT, false))
+PS -> IH : bindOnPress(VK_SPACE, JumpCommand(player))
+PS -> IH : bindOnPress(VK_ESCAPE, ChangeStateCommand(PauseState))
+
+note over IH : Все команды хранятся в Map\nINVOKER не знает что они делают
+
+== Игровой тик: движение вправо ==
+
+User -> IH : keyPressed(VK_D)
+activate IH
+    IH -> IH : queue.add(pressBindings[VK_D])
+deactivate IH
+
+PS -> IH : processCommands()
+activate IH
+    IH -> MC : execute()
+    activate MC
+        note right of MC : MoveCommand знает только\nPlayerActions — не Player
+        MC -> P : startMovingRight()
+        activate P
+            P -> P : movingRight = true\nfacingRight = true
+        deactivate P
+    deactivate MC
+deactivate IH
+
+PS -> P : update()
+activate P
+    P -> P : x += SPEED (3.5f)
+    P -> P : resolveHorizontalCollision()
+    P -> P : velocityY += GRAVITY (0.45f)
+    P -> P : resolveVerticalCollision()
+    P -> P : updateAnimation() → RUN frames
+deactivate P
+
+User -> IH : keyReleased(VK_D)
+activate IH
+    IH -> IH : queue.add(releaseBindings[VK_D])
+deactivate IH
+
+PS -> IH : processCommands()
+activate IH
+    IH -> MC : execute()
+    activate MC
+        MC -> P : stopMovingRight()
+        activate P
+            P -> P : movingRight = false
+        deactivate P
+    deactivate MC
+deactivate IH
+
+note over P : Анимация переключается\nна IDLE автоматически в update()
+
+== Прыжок ==
+
+User -> IH : keyPressed(VK_SPACE)
+activate IH
+    IH -> IH : queue.add(pressBindings[VK_SPACE])
+deactivate IH
+
+PS -> IH : processCommands()
+activate IH
+    IH -> JC : execute()
+    activate JC
+        JC -> P : jump()
+        activate P
+            alt onGround == true
+                P -> P : velocityY = JUMP_FORCE (-10f)\nonGround = false
+            else уже в воздухе
+                P -> P : (игнорировать)
+            end
+        deactivate P
+    deactivate JC
+deactivate IH
+
+== Пауза ==
+
+User -> IH : keyPressed(VK_ESCAPE)
+activate IH
+    IH -> IH : queue.add(pressBindings[VK_ESCAPE])
+deactivate IH
+
+PS -> IH : processCommands()
+activate IH
+    IH -> CC : execute()
+    activate CC
+        CC -> GM : setCurrentState(new PauseState(input, playState))
+        activate GM
+            GM -> GM : currentState = PauseState
+        deactivate GM
+    deactivate CC
+deactivate IH
+
+note over GM : PlayState сохраняется внутри PauseState.\nПри возврате: PauseState.resume() → PlayState.onEnter()\n→ bindKeys() заново
+
+@enduml

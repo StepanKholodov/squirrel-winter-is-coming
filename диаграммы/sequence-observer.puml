@@ -1,0 +1,106 @@
+@startuml SequenceObserver
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 8
+skinparam backgroundColor #FEFEFE
+skinparam sequence {
+    ActorBackgroundColor #4A6FA5
+    ActorFontColor White
+    LifeLineBorderColor #4A6FA5
+    LifeLineBackgroundColor #E8F0FF
+    ParticipantBackgroundColor #F5F8FF
+    ParticipantBorderColor #4A6FA5
+    ParticipantFontSize 12
+    ArrowColor #2C4A7C
+    NoteBackgroundColor #FFFBE6
+    NoteBorderColor #D4A017
+}
+
+title Паттерн Observer — коллизия, жизни и HUD
+
+participant "PlayState" as PS
+participant "Enemy\n(PatrolStrategy)" as E
+participant "Player\n<<Subject>>" as P
+participant "HUD\n<<ConcreteObserver>>" as H
+participant "GameManager\n<<Singleton>>" as GM
+
+== Подписка HUD на Player (при загрузке уровня) ==
+
+PS -> P : addObserver(hud)
+activate P
+    P -> P : observers.add(hud)
+deactivate P
+note over P, H : HUD зарегистрирован как наблюдатель.\nPlayer не знает про HUD — только про Observer-интерфейс.
+
+== Игровой тик ==
+
+PS -> E : update()
+activate E
+    E -> E : prevX = x
+    E -> E : strategy.execute(this)\n→ x ± 1.5f
+    E -> E : facingRight = (x > prevX)
+    E -> E : animFrame++
+deactivate E
+
+PS -> P : update()
+activate P
+    P -> P : physics + collision
+deactivate P
+
+== Столкновение с врагом ==
+
+PS -> PS : player.getBounds().intersects(enemy.getBounds())
+
+alt Пересечение есть && !player.isInvincible()
+    PS -> P : loseLife()
+    activate P
+        P -> P : lives-- (например 3→2)
+        P -> P : invTimer = 120
+        P -> H : notifyObservers()
+        activate H
+            note right of H : Push-модель: Player\nсам толкает данные
+            H -> H : onPlayerChanged(lives=2,\n  nutsCollected=1)
+            H -> H : this.lives = 2
+        deactivate H
+    deactivate P
+
+    alt lives == 0
+        PS -> GM : setCurrentState(new GameOverState(input))
+        activate GM
+            GM -> GM : currentState = GameOverState
+        deactivate GM
+    else lives > 0
+        PS -> P : respawn(spawnX, spawnY)
+        activate P
+            P -> P : x=spawnX, y=spawnY\nvelocityY=0\nmovingLeft=false\nmovingRight=false
+        deactivate P
+        note over P : invTimer = 120 → ~2 сек неуязвимости\nБелка мигает (invTimer % 10 < 4)
+    end
+end
+
+== Сбор ореха ==
+
+PS -> PS : player.getBounds().intersects(nut.getBounds())
+
+alt Коллизия с орехом
+    PS -> P : collectNut()
+    activate P
+        P -> P : nutsCollected++
+        P -> H : notifyObservers()
+        activate H
+            H -> H : onPlayerChanged(lives=2,\n  nutsCollected=2)
+            H -> H : this.nutsCollected = 2
+        deactivate H
+    deactivate P
+    PS -> PS : nuts.remove(nut)
+end
+
+== Рендер HUD (отображение актуального состояния) ==
+
+PS -> H : render(g)
+activate H
+    H -> H : drawLivesPanel()\n→ 2 полных сердца + 1 пустое
+    H -> H : drawNutsPanel()\n→ "2 / 3"
+    H -> H : drawLevelLabel()\n→ "Level 1"
+deactivate H
+
+@enduml
