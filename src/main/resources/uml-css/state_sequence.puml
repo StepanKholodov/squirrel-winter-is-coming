@@ -1,0 +1,71 @@
+@startuml state_sequence
+title State — переход PlayState → PauseState → PlayState (ESC)
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+participant ":GameLoop" as gameLoop
+participant ":GamePanel" as panel
+participant ":GameManager\n<<Singleton>>" as gm
+participant ":InputHandler" as input
+participant "play:PlayState" as play
+participant "pause:PauseState" as pause
+participant "escCmd:ChangeStateCommand" as cmd
+
+== Игровой цикл вызывает state, не зная какой это экран ==
+
+gameLoop -> panel : update()
+panel -> gm   : getCurrentState()
+gm    --> panel : play
+panel -> play : update()
+activate play
+play -> input : processCommands()
+deactivate play
+
+== Игрок нажал ESC — Command кладётся в очередь, потом выполняется ==
+
+input -> cmd  : execute()
+activate cmd
+cmd   -> pause ** : new PauseState(input, play)
+cmd   -> gm   : setCurrentState(pause)
+activate gm
+
+== GameManager инкапсулирует жизненный цикл State ==
+
+gm    -> play  : onExit()
+gm    -> input : clearBindings()
+gm    -> pause : onEnter()
+activate pause
+pause -> input : bindOnPress(ESC, ...)
+pause -> input : bindOnPress(R, ...)
+pause -> input : bindOnPress(ENTER, ...)
+deactivate pause
+deactivate gm
+deactivate cmd
+
+== Следующий кадр: GamePanel рисует уже PauseState ==
+
+gameLoop  -> panel : repaint()
+panel -> gm    : getCurrentState()
+gm    --> panel : pause
+panel -> pause : render(g)
+pause -> play  : render(g)   // игра под полупрозрачным оверлеем
+
+== ESC второй раз — возврат в PlayState ==
+
+note over input,gm
+  ChangeStateCommand(() -> resumeState)
+  возвращает тот же объект play
+end note
+
+input -> gm   : setCurrentState(play)
+activate gm
+gm    -> pause : onExit()
+gm    -> input : clearBindings()
+gm    -> play  : onEnter()
+activate play
+play  -> play  : bindKeys() — восстанавливаем A/D/SPACE/ESC
+deactivate play
+deactivate gm
+
+@enduml

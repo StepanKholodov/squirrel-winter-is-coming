@@ -1,5 +1,7 @@
 package ru.kholodov.game.input;
 
+import ru.kholodov.game.managers.GameManager;
+
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.Map;
@@ -31,6 +33,7 @@ public class InputHandler implements KeyListener {
     /** Привязать команду к нажатию клавиши. */
     public void bindOnPress(int keyCode, Command cmd) {
         onPress.put(keyCode, cmd);
+
     }
 
     /** Привязать команду к отпусканию клавиши. */

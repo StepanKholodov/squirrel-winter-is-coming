@@ -1,0 +1,62 @@
+@startuml singleton_class
+title Singleton — GameManager (class diagram)
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class GameManager <<Singleton>> {
+  - {static} final INSTANCE : GameManager
+  - currentState : GameState
+  - input : InputHandler
+  - GameManager()
+  + {static} getInstance() : GameManager
+  + setInput(input : InputHandler) : void
+  + getCurrentState() : GameState
+  + setCurrentState(next : GameState) : void
+}
+
+interface GameState {
+  + update() : void
+  + render(g : Graphics2D) : void
+  + onEnter() : void
+  + onExit() : void
+}
+
+class InputHandler {
+  + clearBindings() : void
+}
+
+class GamePanel
+class MenuState
+class PlayState
+class PauseState
+
+GameManager o--> "1" GameState        : currentState
+GameManager o--> "1" InputHandler     : input
+
+GamePanel  ..> GameManager : getInstance()
+MenuState  ..> GameManager : setCurrentState()
+PlayState  ..> GameManager : setCurrentState()
+PauseState ..> GameManager : setCurrentState()
+
+MenuState  ..|> GameState
+PlayState  ..|> GameState
+PauseState ..|> GameState
+
+note right of GameManager
+  Eager init:
+   private static final INSTANCE = new GameManager();
+  → thread-safe без synchronized,
+     один экземпляр гарантирован JVM.
+  Приватный конструктор запрещает new GameManager().
+end note
+
+note bottom of GameManager
+  setCurrentState() инкапсулирует
+  жизненный цикл State:
+    prev.onExit()
+    input.clearBindings()
+    currentState = next
+    next.onEnter()
+end note
+@enduml

@@ -1,0 +1,92 @@
+@startuml state_class
+title State — GameState и его реализации (class diagram)
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+interface GameState <<State>> {
+  + update() : void
+  + render(g : Graphics2D) : void
+  + onEnter() : void
+  + onExit() : void
+}
+
+class MenuState {
+  - input : InputHandler
+  - timer : int
+  + onEnter() : void
+  + update() : void
+  + render(g) : void
+}
+
+class PlayState {
+  - level : Level
+  - player : Player
+  - input : InputHandler
+  - levelNumber : int
+  + onEnter() : void
+  + update() : void
+  + render(g) : void
+  - bindKeys() : void
+}
+
+class PauseState {
+  - input : InputHandler
+  - resumeState : GameState
+  + onEnter() : void
+  + update() : void
+  + render(g) : void
+}
+
+class GameOverState {
+  - input : InputHandler
+  - timer : int
+  + update() : void
+  + render(g) : void
+}
+
+class LevelCompleteState {
+  - input : InputHandler
+  - levelNumber : int
+  - timer : int
+  + update() : void
+  + render(g) : void
+}
+
+class GameManager <<Singleton>> {
+  - currentState : GameState
+  + setCurrentState(next : GameState) : void
+  + getCurrentState() : GameState
+}
+
+class GamePanel {
+  + update() : void
+  + paintComponent(g) : void
+}
+
+MenuState          ..|> GameState
+PlayState          ..|> GameState
+PauseState         ..|> GameState
+GameOverState      ..|> GameState
+LevelCompleteState ..|> GameState
+
+GameManager o--> "1" GameState : currentState
+PauseState  o--> "1" GameState : resumeState
+
+GamePanel ..> GameManager : getCurrentState()
+GamePanel ..> GameState   : update() / render()
+
+note right of GameState
+  GamePanel работает только с
+  интерфейсом — не знает, какой
+  экран сейчас активен.
+  Новый экран = новый класс,
+  GamePanel не трогаем.
+end note
+
+note bottom of PauseState
+  PauseState хранит resumeState и
+  рендерит игру под собой.
+  ESC → setCurrentState(resumeState)
+end note
+@enduml

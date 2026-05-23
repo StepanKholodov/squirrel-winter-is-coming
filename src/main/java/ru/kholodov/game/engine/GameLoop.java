@@ -31,7 +31,7 @@ public class GameLoop implements Runnable {
                 try {
                     panel.update();
                 } catch (Exception e) {
-                    e.printStackTrace(); // не даём потоку умереть
+                    e.printStackTrace();
                 }
                 delta--;
             }
