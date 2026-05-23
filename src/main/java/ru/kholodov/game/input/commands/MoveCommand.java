@@ -9,7 +9,7 @@ import ru.kholodov.game.input.PlayerActions;
  */
 public class MoveCommand implements Command {
 
-    public enum Direction { LEFT, RIGHT }
+    public enum Direction {LEFT, RIGHT}
 
     private final PlayerActions player;
     private final Direction direction;
@@ -24,8 +24,14 @@ public class MoveCommand implements Command {
     @Override
     public void execute() {
         switch (direction) {
-            case LEFT  -> { if (start) player.startMovingLeft();  else player.stopMovingLeft();  }
-            case RIGHT -> { if (start) player.startMovingRight(); else player.stopMovingRight(); }
+            case LEFT -> {
+                if (start) player.startMovingLeft();
+                else player.stopMovingLeft();
+            }
+            case RIGHT -> {
+                if (start) player.startMovingRight();
+                else player.stopMovingRight();
+            }
         }
     }
 }

@@ -29,10 +29,10 @@ MenuState implements GameState {
 
         // Загружаем шрифты
         Font pixelBold = loadFont("/fonts/PixelifySans-Bold.ttf");
-        Font pixelReg  = loadFont("/fonts/PixelifySans-Regular.ttf");
-        fontTitle  = (pixelBold != null) ? pixelBold.deriveFont(Font.PLAIN, 52f) : new Font("Arial", Font.BOLD, 42);
+        Font pixelReg = loadFont("/fonts/PixelifySans-Regular.ttf");
+        fontTitle = (pixelBold != null) ? pixelBold.deriveFont(Font.PLAIN, 52f) : new Font("Arial", Font.BOLD, 42);
         fontButton = (pixelBold != null) ? pixelBold.deriveFont(Font.PLAIN, 26f) : new Font("Arial", Font.BOLD, 22);
-        fontHint   = (pixelReg  != null) ? pixelReg.deriveFont(Font.PLAIN,  16f) : new Font("Arial", Font.PLAIN, 14);
+        fontHint = (pixelReg != null) ? pixelReg.deriveFont(Font.PLAIN, 16f) : new Font("Arial", Font.PLAIN, 14);
     }
 
     @Override
@@ -50,7 +50,7 @@ MenuState implements GameState {
     @Override
     public void render(Graphics2D g) {
         int W = GameWindow.WIDTH, H = GameWindow.HEIGHT;
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         // ── Фон ──────────────────────────────────────────────────────────────
@@ -63,11 +63,11 @@ MenuState implements GameState {
         }
 
         // ── Тёмный градиент-оверлей для читаемости текста ────────────────────
-        GradientPaint topFade = new GradientPaint(0, 0, new Color(0,0,0,200), 0, H/2, new Color(0,0,0,0));
+        GradientPaint topFade = new GradientPaint(0, 0, new Color(0, 0, 0, 200), 0, H / 2, new Color(0, 0, 0, 0));
         g.setPaint(topFade);
         g.fillRect(0, 0, W, H / 2);
 
-        GradientPaint botFade = new GradientPaint(0, H/2, new Color(0,0,0,0), 0, H, new Color(0,0,0,160));
+        GradientPaint botFade = new GradientPaint(0, H / 2, new Color(0, 0, 0, 0), 0, H, new Color(0, 0, 0, 160));
         g.setPaint(botFade);
         g.fillRect(0, H / 2, W, H / 2);
 
@@ -127,9 +127,9 @@ MenuState implements GameState {
         g.setFont(fontHint);
         fm = g.getFontMetrics();
         String[] hints = {
-            "A / D  —  Move",
-            "SPACE  —  Jump",
-            "ESC    —  Pause"
+                "A / D  —  Move",
+                "SPACE  —  Jump",
+                "ESC    —  Pause"
         };
         int hintY = H - 60;
         for (String hint : hints) {
@@ -145,15 +145,27 @@ MenuState implements GameState {
 
     private BufferedImage loadImage(String path) {
         try (InputStream is = getClass().getResourceAsStream(path)) {
-            if (is == null) { System.err.println("[Menu] Not found: " + path); return null; }
+            if (is == null) {
+                System.err.println("[Menu] Not found: " + path);
+                return null;
+            }
             return ImageIO.read(is);
-        } catch (Exception e) { System.err.println("[Menu] Error: " + path); return null; }
+        } catch (Exception e) {
+            System.err.println("[Menu] Error: " + path);
+            return null;
+        }
     }
 
     private Font loadFont(String path) {
         try (InputStream is = getClass().getResourceAsStream(path)) {
-            if (is == null) { System.err.println("[Menu] Font not found: " + path); return null; }
+            if (is == null) {
+                System.err.println("[Menu] Font not found: " + path);
+                return null;
+            }
             return Font.createFont(Font.TRUETYPE_FONT, is);
-        } catch (Exception e) { System.err.println("[Menu] Font error: " + path); return null; }
+        } catch (Exception e) {
+            System.err.println("[Menu] Font error: " + path);
+            return null;
+        }
     }
 }

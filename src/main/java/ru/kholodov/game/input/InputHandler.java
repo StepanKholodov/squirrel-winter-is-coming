@@ -12,16 +12,16 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Invoker в паттерне Command.
- *
+ * <p>
  * Хранит привязки клавиш к командам (key → Command) и очередь команд на выполнение.
  * KeyListener выполняется в потоке EDT, а игровой цикл — в отдельном потоке, поэтому
  * команды кладутся в очередь и выполняются игровым циклом через processCommands().
- *
+ * <p>
  * InputHandler не знает ни о Player, ни о состояниях — он только связывает клавиши с командами.
  */
 public class InputHandler implements KeyListener {
 
-    private final Map<Integer, Command> onPress   = new ConcurrentHashMap<>();
+    private final Map<Integer, Command> onPress = new ConcurrentHashMap<>();
     private final Map<Integer, Command> onRelease = new ConcurrentHashMap<>();
 
     // Какие клавиши сейчас зажаты — чтобы не повторять onPress при автоповторе ОС.
@@ -30,25 +30,33 @@ public class InputHandler implements KeyListener {
     // Очередь команд: KeyListener пишет, игровой цикл читает.
     private final Queue<Command> queue = new ConcurrentLinkedQueue<>();
 
-    /** Привязать команду к нажатию клавиши. */
+    /**
+     * Привязать команду к нажатию клавиши.
+     */
     public void bindOnPress(int keyCode, Command cmd) {
         onPress.put(keyCode, cmd);
 
     }
 
-    /** Привязать команду к отпусканию клавиши. */
+    /**
+     * Привязать команду к отпусканию клавиши.
+     */
     public void bindOnRelease(int keyCode, Command cmd) {
         onRelease.put(keyCode, cmd);
     }
 
-    /** Сбросить все привязки. Вызывается при смене состояния. */
+    /**
+     * Сбросить все привязки. Вызывается при смене состояния.
+     */
     public void clearBindings() {
         onPress.clear();
         onRelease.clear();
         queue.clear();
     }
 
-    /** Выполнить все накопленные команды. Вызывается из update() в потоке игры. */
+    /**
+     * Выполнить все накопленные команды. Вызывается из update() в потоке игры.
+     */
     public void processCommands() {
         Command c;
         while ((c = queue.poll()) != null) {
@@ -75,5 +83,6 @@ public class InputHandler implements KeyListener {
     }
 
     @Override
-    public void keyTyped(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {
+    }
 }

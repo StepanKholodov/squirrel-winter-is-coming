@@ -8,12 +8,12 @@ import javax.swing.*;
 
 public class GameWindow extends JFrame {
 
-    public static final int WIDTH  = 800;
+    public static final int WIDTH = 800;
     public static final int HEIGHT = 480;
 
     public GameWindow() {
         InputHandler input = new InputHandler();
-        GamePanel panel    = new GamePanel();
+        GamePanel panel = new GamePanel();
 
         GameManager.getInstance().setInput(input);
         GameManager.getInstance().setCurrentState(new MenuState(input));

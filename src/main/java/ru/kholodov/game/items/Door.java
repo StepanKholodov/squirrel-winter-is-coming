@@ -2,6 +2,7 @@ package ru.kholodov.game.items;
 
 import ru.kholodov.game.engine.Sprites;
 import ru.kholodov.game.entities.GameObject;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
@@ -13,9 +14,13 @@ public class Door extends GameObject {
         super(x, y, 32, 32);
     }
 
-    public void setOpen(boolean open) { this.open = open; }
+    public void setOpen(boolean open) {
+        this.open = open;
+    }
 
-    @Override public void update() {}
+    @Override
+    public void update() {
+    }
 
     @Override
     public void render(Graphics2D g) {

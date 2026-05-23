@@ -31,24 +31,24 @@ public class PlayState implements GameState {
 
     // ── Игровые объекты ──────────────────────────────────────────────────────
 
-    private Level       level;
-    private Player      player;
+    private Level level;
+    private Player player;
     private final List<Enemy> enemies = new ArrayList<>();
-    private final List<Nut>   nuts    = new ArrayList<>();
-    private final List<Trap>  traps   = new ArrayList<>();
-    private Door        door;
-    private HUD         hud;
+    private final List<Nut> nuts = new ArrayList<>();
+    private final List<Trap> traps = new ArrayList<>();
+    private Door door;
+    private HUD hud;
 
-    private int   totalNuts;
+    private int totalNuts;
     private int[] spawnPoint;
 
     private final InputHandler input;
-    private final int          levelNumber;
+    private final int levelNumber;
 
     // ── Конструктор ──────────────────────────────────────────────────────────
 
     public PlayState(InputHandler input, int levelNumber) {
-        this.input       = input;
+        this.input = input;
         this.levelNumber = levelNumber;
         load();
     }
@@ -76,14 +76,17 @@ public class PlayState implements GameState {
             throw new RuntimeException("Не удалось загрузить уровень " + levelNumber, e);
         }
 
-        totalNuts  = level.countNuts();
+        totalNuts = level.countNuts();
         spawnPoint = level.findSpawn();
 
         // Player — Receiver в Command, не знает о клавиатуре
         player = new Player(spawnPoint[0], spawnPoint[1], level);
 
         // Спавн сущностей из тайловой карты
-        enemies.clear(); nuts.clear(); traps.clear(); door = null;
+        enemies.clear();
+        nuts.clear();
+        traps.clear();
+        door = null;
 
         int ts = Level.TILE_SIZE;
         for (int r = 0; r < level.getRows(); r++) {
@@ -100,12 +103,12 @@ public class PlayState implements GameState {
                     case 'E' -> {
                         // Factory Method — PatrolEnemyFactory; снеп Y на ближайший пол
                         float enemyY = snapYToFloor(r, c, ts, 28);
-                        EnemyFactory f = new PatrolEnemyFactory(px - 96, px + 96);
+                        EnemyFactory f = new PatrolEnemyFactory(px - 96, px + 96, level);
                         enemies.add(f.create(px, enemyY));
                     }
                     case 'C' -> {
                         // Factory Method — ChaseEnemyFactory (летает, Y оставляем)
-                        EnemyFactory f = new ChaseEnemyFactory(player);
+                        EnemyFactory f = new ChaseEnemyFactory(player, level);
                         enemies.add(f.create(px, py));
                     }
                 }
@@ -127,10 +130,10 @@ public class PlayState implements GameState {
      */
     private void bindKeys() {
         // Движение — MoveCommand управляет флагами внутри Player
-        input.bindOnPress  (KeyEvent.VK_A,     new MoveCommand(player, MoveCommand.Direction.LEFT,  true));
-        input.bindOnRelease(KeyEvent.VK_A,     new MoveCommand(player, MoveCommand.Direction.LEFT,  false));
-        input.bindOnPress  (KeyEvent.VK_D,     new MoveCommand(player, MoveCommand.Direction.RIGHT, true));
-        input.bindOnRelease(KeyEvent.VK_D,     new MoveCommand(player, MoveCommand.Direction.RIGHT, false));
+        input.bindOnPress(KeyEvent.VK_A, new MoveCommand(player, MoveCommand.Direction.LEFT, true));
+        input.bindOnRelease(KeyEvent.VK_A, new MoveCommand(player, MoveCommand.Direction.LEFT, false));
+        input.bindOnPress(KeyEvent.VK_D, new MoveCommand(player, MoveCommand.Direction.RIGHT, true));
+        input.bindOnRelease(KeyEvent.VK_D, new MoveCommand(player, MoveCommand.Direction.RIGHT, false));
 
         // Прыжок
         input.bindOnPress(KeyEvent.VK_SPACE, new JumpCommand(player));
@@ -138,6 +141,10 @@ public class PlayState implements GameState {
         // Пауза
         input.bindOnPress(KeyEvent.VK_ESCAPE,
                 new ChangeStateCommand(() -> new PauseState(input, this)));
+
+        input.bindOnPress(KeyEvent.VK_W, new JumpCommand(player));
+
+
     }
 
     // ── onEnter: вызывается GameManager при каждом переходе в PlayState ──────
@@ -216,15 +223,15 @@ public class PlayState implements GameState {
 
     @Override
     public void render(Graphics2D g) {
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         drawBackground(g);
 
         level.render(g);
-        for (Nut  n : nuts)     n.render(g);
-        for (Trap t : traps)    t.render(g);
-        if (door != null)       door.render(g);
+        for (Nut n : nuts) n.render(g);
+        for (Trap t : traps) t.render(g);
+        if (door != null) door.render(g);
         for (Enemy e : enemies) e.render(g);
         player.render(g);
 
@@ -253,14 +260,16 @@ public class PlayState implements GameState {
         }
     }
 
-    /** Лёгкая виньетка — затемнение по краям, чтобы взгляд тянулся к центру. */
+    /**
+     * Лёгкая виньетка — затемнение по краям, чтобы взгляд тянулся к центру.
+     */
     private void drawVignette(Graphics2D g) {
         int W = GameWindow.WIDTH, H = GameWindow.HEIGHT;
         Paint saved = g.getPaint();
         g.setPaint(new RadialGradientPaint(
                 W / 2f, H / 2f, Math.max(W, H) * 0.7f,
-                new float[]{ 0.55f, 1f },
-                new Color[]{ new Color(0, 0, 0, 0), new Color(0, 0, 0, 130) }));
+                new float[]{0.55f, 1f},
+                new Color[]{new Color(0, 0, 0, 0), new Color(0, 0, 0, 130)}));
         g.fillRect(0, 0, W, H);
         g.setPaint(saved);
     }

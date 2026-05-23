@@ -11,14 +11,14 @@ import java.io.File;
 import java.util.Objects;
 
 public class LevelCompleteState implements GameState {
-    private final static int MAX_LEVEL = 2;
+    private final static int MAX_LEVEL = 3;
     private final InputHandler input;
     private final int levelNumber;
     private int timer = 0;
     private boolean bindingsRegistered = false;
 
     public LevelCompleteState(InputHandler input, int levelNumber) {
-        this.input       = input;
+        this.input = input;
         this.levelNumber = levelNumber;
         // Биндинги регистрируются по таймеру в update() — задержка от случайных нажатий.
     }
@@ -50,11 +50,11 @@ public class LevelCompleteState implements GameState {
         g.fillRect(0, 0, W, H);
 
         // Золотой свет снизу
-        GradientPaint glow = new GradientPaint(0, H, new Color(180, 130, 0, 120), 0, H / 2, new Color(0,0,0,0));
+        GradientPaint glow = new GradientPaint(0, H, new Color(180, 130, 0, 120), 0, H / 2, new Color(0, 0, 0, 0));
         g.setPaint(glow);
         g.fillRect(0, 0, W, H);
 
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         // Заголовок
@@ -74,13 +74,13 @@ public class LevelCompleteState implements GameState {
         // Подсказка
         g.setFont(Fonts.BUTTON);
         fm = g.getFontMetrics();
-        String next = levelNumber < 2 ? "ENTER — Next Level" : "ENTER — Main Menu";
-        Fonts.drawCentered(g, next, 310, new Color(0,0,0,180), new Color(255, 230, 100), W);
+        String next = levelNumber < MAX_LEVEL ? "ENTER — Next Level" : "ENTER — Main Menu";
+        Fonts.drawCentered(g, next, 310, new Color(0, 0, 0, 180), new Color(255, 230, 100), W);
 
         g.setFont(Fonts.BODY);
         fm = g.getFontMetrics();
         String menu = "R — Main Menu";
         Fonts.drawCentered(g, menu, 310 + fm.getHeight() + 12,
-                new Color(0,0,0,160), new Color(200, 185, 150), W);
+                new Color(0, 0, 0, 160), new Color(200, 185, 150), W);
     }
 }

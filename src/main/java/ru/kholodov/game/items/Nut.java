@@ -2,6 +2,7 @@ package ru.kholodov.game.items;
 
 import ru.kholodov.game.engine.Sprites;
 import ru.kholodov.game.entities.GameObject;
+
 import java.awt.*;
 
 public class Nut extends GameObject {
@@ -10,7 +11,9 @@ public class Nut extends GameObject {
         super(x + 8, y + 8, 16, 16);
     }
 
-    @Override public void update() {}
+    @Override
+    public void update() {
+    }
 
     @Override
     public void render(Graphics2D g) {
@@ -23,17 +26,17 @@ public class Nut extends GameObject {
         // Аккуратный пульсирующий glow вокруг жёлудя
         long t = System.currentTimeMillis();
         float pulse = 0.5f + 0.5f * (float) Math.sin(t / 350.0);
-        int cx = (int) x + width  / 2;
+        int cx = (int) x + width / 2;
         int cy = (int) y + height / 2;
         int glowR = 18 + (int) (pulse * 4);
         Paint saved = g.getPaint();
         g.setPaint(new RadialGradientPaint(
                 cx, cy, glowR,
-                new float[]{ 0f, 0.6f, 1f },
+                new float[]{0f, 0.6f, 1f},
                 new Color[]{
                         new Color(255, 215, 110, 120),
-                        new Color(255, 180,  60,  40),
-                        new Color(255, 180,  60,   0)
+                        new Color(255, 180, 60, 40),
+                        new Color(255, 180, 60, 0)
                 }));
         g.fillOval(cx - glowR, cy - glowR, glowR * 2, glowR * 2);
         g.setPaint(saved);

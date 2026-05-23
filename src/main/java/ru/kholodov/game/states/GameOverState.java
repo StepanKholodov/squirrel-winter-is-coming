@@ -42,11 +42,11 @@ public class GameOverState implements GameState {
         g.fillRect(0, 0, W, H);
 
         // Градиент снизу — ощущение холода/тьмы
-        GradientPaint fade = new GradientPaint(0, H / 2, new Color(0,0,0,0), 0, H, new Color(60, 0, 0, 180));
+        GradientPaint fade = new GradientPaint(0, H / 2, new Color(0, 0, 0, 0), 0, H, new Color(60, 0, 0, 180));
         g.setPaint(fade);
         g.fillRect(0, H / 2, W, H / 2);
 
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         // Заголовок «GAME OVER»
@@ -67,14 +67,14 @@ public class GameOverState implements GameState {
         g.setFont(Fonts.BODY);
         fm = g.getFontMetrics();
         String sub = "Winter came too early...";
-        Fonts.drawCentered(g, sub, ty + 50, new Color(0,0,0,180), new Color(180, 150, 100), W);
+        Fonts.drawCentered(g, sub, ty + 50, new Color(0, 0, 0, 180), new Color(180, 150, 100), W);
 
         // Кнопки
-        String[] lines = { "R — Retry", "ENTER — Main Menu" };
+        String[] lines = {"R — Retry", "ENTER — Main Menu"};
         int startY = 330;
         for (int i = 0; i < lines.length; i++) {
             Fonts.drawCentered(g, lines[i], startY + i * (fm.getHeight() + 10),
-                    new Color(0,0,0,180), new Color(220, 210, 180), W);
+                    new Color(0, 0, 0, 180), new Color(220, 210, 180), W);
         }
     }
 }

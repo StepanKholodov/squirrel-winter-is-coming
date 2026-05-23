@@ -5,7 +5,7 @@ import ru.kholodov.game.states.GameState;
 
 /**
  * Singleton — единственный объект, через который все экраны переключают состояние.
- *
+ * <p>
  * Eager-инициализация (final instance в static-поле) делает singleton потокобезопасным
  * без synchronized: JVM гарантирует, что static-поле проинициализировано один раз
  * до первого использования класса.
@@ -17,13 +17,16 @@ public class GameManager {
     private GameState currentState;
     private InputHandler input;
 
-    private GameManager() {}
+    private GameManager() {
+    }
 
     public static GameManager getInstance() {
         return INSTANCE;
     }
 
-    /** Регистрируется один раз из GameWindow — чтобы при смене состояния чистить биндинги. */
+    /**
+     * Регистрируется один раз из GameWindow — чтобы при смене состояния чистить биндинги.
+     */
     public void setInput(InputHandler input) {
         this.input = input;
     }
@@ -34,7 +37,7 @@ public class GameManager {
 
     /**
      * Меняет состояние с полным жизненным циклом:
-     *   prev.onExit() → clearBindings → next.onEnter()
+     * prev.onExit() → clearBindings → next.onEnter()
      * Состояния больше не должны сами вызывать input.clearBindings().
      */
     public void setCurrentState(GameState next) {

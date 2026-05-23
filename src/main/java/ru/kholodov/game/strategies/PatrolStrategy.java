@@ -9,14 +9,14 @@ public class PatrolStrategy implements EnemyStrategy {
     private float direction = 1;
 
     public PatrolStrategy(float leftBound, float rightBound) {
-        this.leftBound  = leftBound;
+        this.leftBound = leftBound;
         this.rightBound = rightBound;
     }
 
     @Override
     public void execute(Enemy enemy) {
-        enemy.setX(enemy.getX() + direction * 1.5f);
-        if (enemy.getX() >= rightBound || enemy.getX() <= leftBound) {
+        boolean moved = enemy.tryMoveX(direction * 1.5f);
+        if (!moved || enemy.getX() >= rightBound || enemy.getX() <= leftBound) {
             direction *= -1;
         }
     }

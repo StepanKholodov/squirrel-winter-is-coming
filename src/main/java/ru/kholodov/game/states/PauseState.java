@@ -11,10 +11,10 @@ import java.awt.event.KeyEvent;
 public class PauseState implements GameState {
 
     private final InputHandler input;
-    private final GameState    resumeState;
+    private final GameState resumeState;
 
     public PauseState(InputHandler input, GameState resumeState) {
-        this.input       = input;
+        this.input = input;
         this.resumeState = resumeState;
     }
 
@@ -44,7 +44,7 @@ public class PauseState implements GameState {
         g.setColor(new Color(0, 0, 0, 160));
         g.fillRect(0, 0, W, H);
 
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
         // Заголовок «PAUSED»
@@ -64,7 +64,7 @@ public class PauseState implements GameState {
         // Подсказки
         g.setFont(Fonts.BODY);
         fm = g.getFontMetrics();
-        String[] lines = { "ESC — Continue", "R — Restart", "ENTER — Main Menu" };
+        String[] lines = {"ESC — Continue", "R — Restart", "ENTER — Main Menu"};
         int startY = 290;
         for (int i = 0; i < lines.length; i++) {
             Fonts.drawCentered(g, lines[i], startY + i * (fm.getHeight() + 8),

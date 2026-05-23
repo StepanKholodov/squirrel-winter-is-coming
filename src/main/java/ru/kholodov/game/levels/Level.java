@@ -1,6 +1,7 @@
 package ru.kholodov.game.levels;
 
 import ru.kholodov.game.engine.Sprites;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
@@ -11,7 +12,7 @@ public class Level {
     // Визуальная высота платформы (> TILE_SIZE, чтобы трава торчала над хитбоксом)
     private static final int PLATFORM_H = 56;
     // Визуальная высота полосы земли внизу (80px чтобы показать холмик)
-    private static final int GROUND_H   = 80;
+    private static final int GROUND_H = 80;
 
     private final char[][] tiles;
 
@@ -24,14 +25,19 @@ public class Level {
         return tiles[row][col];
     }
 
-    public int getRows() { return tiles.length; }
-    public int getCols() { return tiles[0].length; }
+    public int getRows() {
+        return tiles.length;
+    }
+
+    public int getCols() {
+        return tiles[0].length;
+    }
 
     public int[] findSpawn() {
         for (int r = 0; r < tiles.length; r++)
             for (int c = 0; c < tiles[r].length; c++)
-                if (tiles[r][c] == 'P') return new int[]{ c * TILE_SIZE, r * TILE_SIZE };
-        return new int[]{ 32, 32 };
+                if (tiles[r][c] == 'P') return new int[]{c * TILE_SIZE, r * TILE_SIZE};
+        return new int[]{32, 32};
     }
 
     public int countNuts() {
@@ -104,7 +110,7 @@ public class Level {
 
         // Тень-«подбрюшье» — мягко затемняет нижнюю границу платформы для ощущения объёма
         int shadowTop = drawY + TILE_SIZE;
-        int shadowH   = PLATFORM_H - TILE_SIZE;
+        int shadowH = PLATFORM_H - TILE_SIZE;
         if (shadowH > 0) {
             Paint saved = g.getPaint();
             g.setPaint(new GradientPaint(
@@ -136,7 +142,7 @@ public class Level {
         // Глубина: верхняя «фаска» затемнена, низ ещё темнее — земля кажется массивной
         Paint saved = g.getPaint();
         g.setPaint(new GradientPaint(
-                0, groundY + 6,  new Color(0, 0, 0,   0),
+                0, groundY + 6, new Color(0, 0, 0, 0),
                 0, groundY + TILE_SIZE, new Color(0, 0, 0, 110)));
         g.fillRect(0, groundY + 6, screenW, TILE_SIZE - 6);
         g.setPaint(saved);

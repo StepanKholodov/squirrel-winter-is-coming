@@ -40,34 +40,34 @@ public class Sprites {
     static {
         // ── Белка ─────────────────────────────────────────────────────────────
         BufferedImage sqIdle = load("/sprites/squirrel_idle.png");
-        BufferedImage sqRun  = load("/sprites/squirrel_run.png");
+        BufferedImage sqRun = load("/sprites/squirrel_run.png");
         BufferedImage sqJump = load("/sprites/squirrel_jump.png");
         SQUIRREL_IDLE = strip(sqIdle, 3, 220);
-        SQUIRREL_RUN  = strip(sqRun,  6, 220);
+        SQUIRREL_RUN = strip(sqRun, 6, 220);
         SQUIRREL_JUMP = strip(sqJump, 3, 220);
 
         // ── Предметы ──────────────────────────────────────────────────────────
         BufferedImage acornSheet = load("/sprites/acorn.png");
 
-        ACORN       = (acornSheet != null) ? new BufferedImage[]{acornSheet} : new BufferedImage[0];
-        TRAP_SPIKE  = load("/sprites/trap.png");
-        HEART       = load("/sprites/heart.png");
+        ACORN = (acornSheet != null) ? new BufferedImage[]{acornSheet} : new BufferedImage[0];
+        TRAP_SPIKE = load("/sprites/trap.png");
+        HEART = load("/sprites/heart.png");
         HEART_EMPTY = load("/sprites/heart_empty.png");
 
         // ── Тайлы ─────────────────────────────────────────────────────────────
         TILE_TOP = load("/sprites/tile_top.png"); // трава + камень
         TILE_MID = load("/sprites/tile_mid.png"); // только камень
-        GROUND   = load("/sprites/ground.png");   // земля-новая: полоса низа
+        GROUND = load("/sprites/ground.png");   // земля-новая: полоса низа
 
         // ── Сундук ────────────────────────────────────────────────────────────
         CHEST_CLOSED = load("/sprites/chest_closed.png");
-        CHEST_OPEN   = load("/sprites/chest_open.png");
+        CHEST_OPEN = load("/sprites/chest_open.png");
 
         // ── Враги ─────────────────────────────────────────────────────────────
         BufferedImage hedgehogRun = load("/sprites/hedgehog_run.png");
-        BufferedImage crowFly     = load("/sprites/crow_fly.png");
+        BufferedImage crowFly = load("/sprites/crow_fly.png");
         ENEMY_PATROL_RUN = strip(hedgehogRun, 5, 220);
-        ENEMY_CHASE      = strip(crowFly,     4, 250);
+        ENEMY_CHASE = strip(crowFly, 4, 250);
 
         // ── Фон: загружаем и слегка размываем для эффекта глубины ────────────
         BG_AUTUMN = blur(load("/backgrounds/bg1/autumn.png"), 2);
@@ -75,7 +75,9 @@ public class Sprites {
 
     // ── Вспомогательные методы ────────────────────────────────────────────────
 
-    /** Нарезает горизонтальный стрип: count кадров, каждый frameSize×frameSize */
+    /**
+     * Нарезает горизонтальный стрип: count кадров, каждый frameSize×frameSize
+     */
     public static BufferedImage[] strip(BufferedImage sheet, int count, int frameSize) {
         if (sheet == null) return new BufferedImage[0];
         BufferedImage[] frames = new BufferedImage[count];
@@ -86,7 +88,9 @@ public class Sprites {
         return frames;
     }
 
-    /** Устаревший метод совместимости */
+    /**
+     * Устаревший метод совместимости
+     */
     public static BufferedImage[] row(BufferedImage sheet, int rowIndex, int count, int frameSize) {
         BufferedImage[] frames = new BufferedImage[count];
         for (int i = 0; i < count; i++) {
@@ -102,10 +106,14 @@ public class Sprites {
 
     public static BufferedImage load(String path) {
         try (InputStream is = Sprites.class.getResourceAsStream(path)) {
-            if (is == null) { System.err.println("[Sprites] Не найден: " + path); return null; }
+            if (is == null) {
+                System.err.println("[Sprites] Не найден: " + path);
+                return null;
+            }
             return ImageIO.read(is);
         } catch (IOException e) {
-            System.err.println("[Sprites] Ошибка: " + path); return null;
+            System.err.println("[Sprites] Ошибка: " + path);
+            return null;
         }
     }
 

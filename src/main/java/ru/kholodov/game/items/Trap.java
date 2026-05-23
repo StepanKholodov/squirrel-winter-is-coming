@@ -2,6 +2,7 @@ package ru.kholodov.game.items;
 
 import ru.kholodov.game.engine.Sprites;
 import ru.kholodov.game.entities.GameObject;
+
 import java.awt.*;
 
 public class Trap extends GameObject {
@@ -10,7 +11,9 @@ public class Trap extends GameObject {
         super(x, y + 16, 32, 16); // шипы в нижней половине тайла
     }
 
-    @Override public void update() {}
+    @Override
+    public void update() {
+    }
 
     @Override
     public void render(Graphics2D g) {

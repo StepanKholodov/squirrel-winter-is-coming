@@ -16,28 +16,36 @@ public class Fonts {
 
     static {
         Font bold = loadFont("/fonts/PixelifySans-Bold.ttf");
-        Font reg  = loadFont("/fonts/PixelifySans-Regular.ttf");
+        Font reg = loadFont("/fonts/PixelifySans-Regular.ttf");
 
-        Font fallbackBold  = new Font("Arial", Font.BOLD,  1);
+        Font fallbackBold = new Font("Arial", Font.BOLD, 1);
         Font fallbackPlain = new Font("Arial", Font.PLAIN, 1);
 
-        Font base_bold = bold  != null ? bold  : fallbackBold;
-        Font base_reg  = reg   != null ? reg   : fallbackPlain;
+        Font base_bold = bold != null ? bold : fallbackBold;
+        Font base_reg = reg != null ? reg : fallbackPlain;
 
-        TITLE  = base_bold.deriveFont(Font.PLAIN, 54f);
+        TITLE = base_bold.deriveFont(Font.PLAIN, 54f);
         BUTTON = base_bold.deriveFont(Font.PLAIN, 26f);
-        BODY   = base_reg .deriveFont(Font.PLAIN, 18f);
-        HUD    = base_bold.deriveFont(Font.PLAIN, 17f);
+        BODY = base_reg.deriveFont(Font.PLAIN, 18f);
+        HUD = base_bold.deriveFont(Font.PLAIN, 17f);
     }
 
     private static Font loadFont(String path) {
         try (InputStream is = Fonts.class.getResourceAsStream(path)) {
-            if (is == null) { System.err.println("[Fonts] Not found: " + path); return null; }
+            if (is == null) {
+                System.err.println("[Fonts] Not found: " + path);
+                return null;
+            }
             return Font.createFont(Font.TRUETYPE_FONT, is);
-        } catch (Exception e) { System.err.println("[Fonts] Error: " + path); return null; }
+        } catch (Exception e) {
+            System.err.println("[Fonts] Error: " + path);
+            return null;
+        }
     }
 
-    /** Нарисовать строку с тенью (тень смещена на +dx, +dy). */
+    /**
+     * Нарисовать строку с тенью (тень смещена на +dx, +dy).
+     */
     public static void drawShadow(Graphics2D g, String text, int x, int y,
                                   Color shadow, Color main) {
         g.setColor(shadow);
@@ -46,7 +54,9 @@ public class Fonts {
         g.drawString(text, x, y);
     }
 
-    /** Нарисовать строку с тенью по центру экрана. */
+    /**
+     * Нарисовать строку с тенью по центру экрана.
+     */
     public static void drawCentered(Graphics2D g, String text, int y,
                                     Color shadow, Color main, int screenW) {
         FontMetrics fm = g.getFontMetrics();

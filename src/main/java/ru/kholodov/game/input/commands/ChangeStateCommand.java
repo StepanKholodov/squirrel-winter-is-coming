@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 /**
  * Команда перехода между состояниями игры.
  * Receiver — GameManager (Singleton).
- *
+ * <p>
  * Используем Supplier чтобы создавать новое состояние в момент выполнения команды,
  * а не в момент её регистрации (иначе LevelCompleteState создался бы при заходе в MenuState).
  */

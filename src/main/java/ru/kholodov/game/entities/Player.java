@@ -4,6 +4,7 @@ import ru.kholodov.game.engine.Sprites;
 import ru.kholodov.game.input.PlayerActions;
 import ru.kholodov.game.levels.Level;
 import ru.kholodov.game.ui.PlayerObserver;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -13,35 +14,35 @@ import java.util.List;
  * Receiver в паттерне Command.
  * Реализует PlayerActions — команды (MoveCommand, JumpCommand) вызывают
  * методы этого интерфейса, не зная о конкретном классе Player.
- *
+ * <p>
  * Движение управляется внутренними флагами movingLeft / movingRight,
  * которые команды переключают через startMovingLeft() / stopMovingLeft() и т.д.
- *
+ * <p>
  * Subject в паттерне Observer: уведомляет HUD при каждом изменении жизней или орехов.
  */
 public class Player extends GameObject implements PlayerActions {
 
     // ── Константы физики ─────────────────────────────────────────────────────
 
-    private static final float SPEED      = 3.5f;
+    private static final float SPEED = 3.5f;
     private static final float JUMP_FORCE = -10f;
-    private static final float GRAVITY    = 0.45f;
-    private static final float MAX_FALL   = 12f;
+    private static final float GRAVITY = 0.45f;
+    private static final float MAX_FALL = 12f;
 
     // ── Состояние ────────────────────────────────────────────────────────────
 
-    private float   velocityY   = 0;
-    private boolean onGround    = false;
+    private float velocityY = 0;
+    private boolean onGround = false;
     private boolean facingRight = true;
 
     // Флаги движения — устанавливаются командами (Command pattern)
-    private boolean movingLeft  = false;
+    private boolean movingLeft = false;
     private boolean movingRight = false;
 
-    private int lives         = 3;
+    private int lives = 3;
     private int nutsCollected = 0;
-    private int invTimer      = 0;   // кадры неуязвимости после удара
-    private int animTimer     = 0;   // счётчик кадров для анимации спрайтов
+    private int invTimer = 0;   // кадры неуязвимости после удара
+    private int animTimer = 0;   // счётчик кадров для анимации спрайтов
 
     private final Level level;
 
@@ -49,7 +50,9 @@ public class Player extends GameObject implements PlayerActions {
 
     private final List<PlayerObserver> observers = new ArrayList<>();
 
-    public void addObserver(PlayerObserver o) { observers.add(o); }
+    public void addObserver(PlayerObserver o) {
+        observers.add(o);
+    }
 
     private void notifyObservers() {
         for (PlayerObserver o : observers) o.onPlayerChanged(lives, nutsCollected);
@@ -66,7 +69,7 @@ public class Player extends GameObject implements PlayerActions {
 
     @Override
     public void startMovingLeft() {
-        movingLeft  = true;
+        movingLeft = true;
         facingRight = false;
     }
 
@@ -90,7 +93,7 @@ public class Player extends GameObject implements PlayerActions {
     public void jump() {
         if (onGround) {
             velocityY = JUMP_FORCE;
-            onGround  = false;
+            onGround = false;
         }
     }
 
@@ -102,7 +105,7 @@ public class Player extends GameObject implements PlayerActions {
         animTimer++;
 
         // Горизонтальное движение по флагам — команды уже установили их
-        if (movingLeft)  x -= SPEED;
+        if (movingLeft) x -= SPEED;
         if (movingRight) x += SPEED;
         resolveHorizontalCollision();
 
@@ -118,8 +121,8 @@ public class Player extends GameObject implements PlayerActions {
     // ── Коллизии с тайлами ────────────────────────────────────────────────────
 
     private void resolveHorizontalCollision() {
-        int ts        = Level.TILE_SIZE;
-        int topRow    = (int) (y / ts);
+        int ts = Level.TILE_SIZE;
+        int topRow = (int) (y / ts);
         int bottomRow = (int) ((y + height - 1) / ts);
 
         if (movingRight) {
@@ -135,8 +138,8 @@ public class Player extends GameObject implements PlayerActions {
     }
 
     private void resolveVerticalCollision() {
-        int ts       = Level.TILE_SIZE;
-        int leftCol  = (int) (x / ts);
+        int ts = Level.TILE_SIZE;
+        int leftCol = (int) (x / ts);
         int rightCol = (int) ((x + width - 1) / ts);
 
         if (velocityY > 0) {                       // падаем вниз
@@ -144,7 +147,7 @@ public class Player extends GameObject implements PlayerActions {
             if (isSolid(row, leftCol) || isSolid(row, rightCol)) {
                 y = row * ts - height;
                 velocityY = 0;
-                onGround  = true;
+                onGround = true;
             }
         } else if (velocityY < 0) {                // летим вверх
             int row = (int) (y / ts);
@@ -179,9 +182,12 @@ public class Player extends GameObject implements PlayerActions {
     }
 
     public void respawn(float spawnX, float spawnY) {
-        x = spawnX;  y = spawnY;
-        velocityY = 0;  onGround = false;
-        movingLeft = false;  movingRight = false;
+        x = spawnX;
+        y = spawnY;
+        velocityY = 0;
+        onGround = false;
+        movingLeft = false;
+        movingRight = false;
     }
 
     // ── Рендер ───────────────────────────────────────────────────────────────
@@ -196,9 +202,9 @@ public class Player extends GameObject implements PlayerActions {
 
         // Выбор стрипа по состоянию
         BufferedImage[] strip;
-        if (!onGround)                          strip = Sprites.SQUIRREL_JUMP;
-        else if (movingLeft || movingRight)     strip = Sprites.SQUIRREL_RUN;
-        else                                    strip = Sprites.SQUIRREL_IDLE;
+        if (!onGround) strip = Sprites.SQUIRREL_JUMP;
+        else if (movingLeft || movingRight) strip = Sprites.SQUIRREL_RUN;
+        else strip = Sprites.SQUIRREL_IDLE;
 
         if (strip == null || strip.length == 0) return;
         BufferedImage img = strip[(animTimer / 6) % strip.length];
@@ -219,8 +225,19 @@ public class Player extends GameObject implements PlayerActions {
 
     // ── Геттеры ──────────────────────────────────────────────────────────────
 
-    public int     getLives()         { return lives; }
-    public int     getNutsCollected() { return nutsCollected; }
-    public boolean isAlive()          { return lives > 0; }
-    public boolean isInvincible()     { return invTimer > 0; }
+    public int getLives() {
+        return lives;
+    }
+
+    public int getNutsCollected() {
+        return nutsCollected;
+    }
+
+    public boolean isAlive() {
+        return lives > 0;
+    }
+
+    public boolean isInvincible() {
+        return invTimer > 0;
+    }
 }
